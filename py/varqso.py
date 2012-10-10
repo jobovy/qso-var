@@ -164,7 +164,7 @@ class VarQso():
         nepochs= [len(self.mjd[b]) for b in band]
         return nu.amin(nepochs)
         
-    def plotSF(self,band='r',nGP=5,nx=201,**kwargs):
+    def plotSF(self,band='r',nGP=5,nx=201,plotMean=False,**kwargs):
         """
         NAME:
            plotSF
@@ -174,6 +174,7 @@ class VarQso():
            band - band to plot (e.g., 'r' for SF, 'gr' for CSF)
            nGP - number of GPs to plot
            nx - number of gridpoints for theoryLC
+           plotMean - also plot the sf of the mean of the GP
         OUTPUT:
         HISTORY:
            2010-12-21 - Started - Bovy (NYU)
@@ -220,6 +221,21 @@ class VarQso():
             for lc in self.lc:
                 lc.plotSF(band,**kwargs)
         pyplot.errorbar(sfxs,sf,yerr=esf,ecolor='k',fmt=None)
+        if hasfit and plotMean:
+            pmean, pvar= self.predict(lc.txs,band)
+            if len(band) == 1:
+                pyplot.loglog(sc.arange(1.,len(pmean)/2)*
+                              (lc.txs[1]-lc.txs[0]),
+                              2.*sc.var(pmean)
+                              -2.*sc.correlate(pmean
+                                               -sc.mean(pmean),
+                                               pmean
+                                           -sc.mean(pmean),"same")\
+                              [1:len(pmean)/2][::-1]/\
+                                  len(pmean),'-',color='0.65')
+            else:
+                print "WARNING: multiple bands plotMean not implemented..."
+                return None
         #for color-sf, plot data error separately
         if len(band) == 2:
             datacsf= 2.*self.meanErr[band[0]]**2.\
@@ -1177,9 +1193,9 @@ class LCmodel():
         if self.nbands == 1:
             if type == 'powerlawSF':
                 try:
-                    from gp.powerlawSF import covarFunc 
-                except ImportError:
                     from flexgp.powerlawSF import covarFunc 
+                except ImportError:
+                    from gp.powerlawSF import covarFunc 
                 if init_params is None:
                     params= {'gamma': nu.array([ 0.49500723]), 
                              'logA': nu.array([-3.36044037])}
@@ -1198,24 +1214,24 @@ class LCmodel():
                     params= {}
             elif type == 'periodicDRW':
                 try:
-                    from gp.periodicOU_ARD import covarFunc  
-                except ImportError:
                     from flexgp.periodicOU_ARD import covarFunc 
+                except ImportError:
+                    from gp.periodicOU_ARD import covarFunc  
                 if init_params is None:
                     params= {'logl': nu.array([-1.37742591]), 
                              'logP':nu.array([nu.log(1./365.)]),
                              'loga2': nu.array([-3.47341754])}
             if mean == 'zero':
                 try:
-                    from gp.zeroMean import meanFunc
-                except ImportError:
                     from flexgp.zeroMean import meanFunc
+                except ImportError:
+                    from gp.zeroMean import meanFunc
                 mean_params= {}
             elif mean == 'const':
                 try:
-                    from gp.constMean import meanFunc
-                except ImportError:
                     from flexgp.constMean import meanFunc
+                except ImportError:
+                    from gp.constMean import meanFunc
                 if init_params is None:
                     mean_params= {'m':0.}
         else: #multi-filter
@@ -1291,9 +1307,9 @@ class LCmodel():
                              's':nu.array([0.83])}
             if mean == 'zero':
                 try:
-                    from gp.zeroMean import meanFunc
-                except ImportError:
                     from flexgp.zeroMean import meanFunc
+                except ImportError:
+                    from gp.zeroMean import meanFunc
                 mean_params= {}
             elif mean == 'const' \
                     and (type == 'KS11' or type == 'KS11constscatter' \
@@ -1385,9 +1401,9 @@ class TheoryLC():
         if len(band) == 1:
             if type == 'powerlawSF':
                 try:
-                    from gp.powerlawSF import covarFunc 
-                except ImportError:
                     from flexgp.powerlawSF import covarFunc 
+                except ImportError:
+                    from gp.powerlawSF import covarFunc 
             elif type == 'DRW':
                 from DRW import covarFunc
             elif type == 'scatter':
@@ -1396,19 +1412,19 @@ class TheoryLC():
                 from zeroCovariance import covarFunc
             elif type == 'periodicDRW':
                 try:
-                    from gp.periodicOU_ARD import covarFunc 
-                except ImportError:
                     from flexgp.periodicOU_ARD import covarFunc 
+                except ImportError:
+                    from gp.periodicOU_ARD import covarFunc 
             if mean == 'zero':
                 try:
-                    from gp.zeroMean import meanFunc
-                except ImportError:
                     from flexgp.zeroMean import meanFunc
+                except ImportError:
+                    from gp.zeroMean import meanFunc
             elif mean == 'const':
                 try:
-                    from gp.constMean import meanFunc
-                except ImportError:
                     from flexgp.constMean import meanFunc
+                except ImportError:
+                    from gp.constMean import meanFunc
         else: #multi-filter
             if type == 'powerlawSF':
                 from powerlawSFmulti import covarFunc
@@ -1432,9 +1448,9 @@ class TheoryLC():
                 from reverbPLgr import covarFunc
             if mean == 'zero':
                 try:
-                    from gp.zeroMean import meanFunc
-                except ImportError:
                     from flexgp.zeroMean import meanFunc
+                except ImportError:
+                    from gp.zeroMean import meanFunc
             elif mean == 'const' \
                     and (type == 'KS11' or type == 'KS11constscatter' \
                              or type == 'KS11_nogamma' \
