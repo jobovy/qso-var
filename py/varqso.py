@@ -192,12 +192,44 @@ class VarQso():
             if ndata_in_duration[ii] > thisn:
                 max_indx.append(ii)
             thisn= ndata_in_duration[ii]
-        print ndata_in_duration
-        print max_indx
         cand_mjd= this_mjd[max_indx]
         cand= ndata_in_duration[max_indx]
         return cand_mjd[(cand > minnepochs)]
-        
+
+    def skew(self,taus,band,minnepochs=15,**kwargs):
+        """
+        NAME:
+           skew
+        PURPOSE:
+           determine the skew of the quasar lightcurve
+        INPUT:
+           taus - lags to determine the skew at (in yr)
+           band - do the determination for this band
+           minnepochs= minimum number of epochs in a season
+           +self.fit kwargs (if fit needs to be done)
+        OUTPUT:
+           skew(taus)
+        HISTORY:
+           2012-10-11 - Written - Bovy (IAS)
+        """
+        #First determine the seasons
+        start_mjds= self.determine_seasons(taus[-1],band,
+                                           minnepochs=minnepochs)
+        #Then interpolate the seasonal lightcurve using Wiener filter
+        hasfit= hasattr(self,'LCparams')
+        if not hasfit:
+            self.fit(band,**kwargs)
+        nwindows= len(start_mjds)
+        xs, pm, pv= [], [], []
+        for ii in range(nwindows):
+            thisxs= sc.arange(start_mjds[ii]-0.05,start_mjds[ii]+taus[-1]+0.05,taus[1]-taus[0])
+            thispm, thispv= self.predict(thisxs,band)
+            xs.append(thisxs)
+            pm.append(thispm)
+            pv.append(thispv)
+        #Calculate skew
+        return skew(xs,pm,pv,sc.arange(len(taus)))
+            
     def plotSF(self,band='r',nGP=5,nx=201,plotMean=False,**kwargs):
         """
         NAME:
