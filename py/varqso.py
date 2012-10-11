@@ -1660,6 +1660,96 @@ class TheoryLC():
                               len(one),
                           *args,**kwargs)
 
+def S2(xs,pm,pv,taus,_retoutnorm=False):
+    """
+    NAME:
+       S_2
+    PURPOSE:
+       calculate S_2 = <(h(t+taus)-h(t))^2>
+    INPUT:
+       xs - points at which function is evaluated
+       pm - function
+       pv - error in function squared
+       taus - offsets (integers) to consider as lags
+    OUTPUT:
+       S_2
+    HISTORY:
+       2012-10-11 - Written - Bovy (IAS)
+    """
+    out= sc.zeros(len(taus))
+    norm= sc.zeros(len(taus))
+    if isinstance(pm,list): #Multiple windows
+        for ii in range(len(pm)):
+            thisout, thisnorm= S2(xs[ii],pm[ii],pv[ii],taus,_retoutnorm=True)
+            out+= thisout
+            norm+= thisnorm
+        return out/norm
+    expanded_pm= sc.resize(pm,2*len(pm)+1)
+    expanded_pm[len(pm):2*len(pm)]= 0.
+    expanded_pv= sc.resize(pm,2*len(pm)+1)
+    expanded_pv[len(pm):2*len(pm)]= 10.**6.
+    for ii in range(len(taus)):
+        out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**2./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
+        norm[ii]= sc.sum(1./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
+    if _retoutnorm:
+        return (out,norm)
+    else:
+        return out
+
+def S3(xs,pm,pv,taus,_retoutnorm=False):
+    """
+    NAME:
+       S3
+    PURPOSE:
+       calculate S3 = <(h(t+taus)-h(t))^3>
+    INPUT:
+       xs - points at which function is evaluated
+       pm - function
+       pv - error in function squared
+       taus - offsets (integers) to consider as lags
+    OUTPUT:
+       S_3
+    HISTORY:
+       2012-10-11 - Written - Bovy (IAS)
+    """
+    out= sc.zeros(len(taus))
+    norm= sc.zeros(len(taus))
+    if isinstance(pm,list): #Multiple windows
+        for ii in range(len(pm)):
+            thisout, thisnorm= S3(xs[ii],pm[ii],pv[ii],taus,_retoutnorm=True)
+            out+= thisout
+            norm+= thisnorm
+        return out/norm
+    expanded_pm= sc.resize(pm,2*len(pm)+1)
+    expanded_pm[len(pm):2*len(pm)]= 0.
+    expanded_pv= sc.resize(pm,2*len(pm)+1)
+    expanded_pv[len(pm):2*len(pm)]= 10.**6.
+    for ii in range(len(taus)):
+        out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**3./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
+        norm[ii]= sc.sum(1./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
+    if _retoutnorm:
+        return (out, norm)
+    else:
+        return out/norm
+
+def skew(xs,pm,pv,taus):
+    """
+    NAME:
+       skew
+    PURPOSE:
+       calculate skew = S_3 / s_2**1.5
+    INPUT:
+       xs - points at which function is evaluated
+       pm - function
+       pv - error in function squared
+       taus - offsets (integers) to consider as lags
+    OUTPUT:
+       skew
+    HISTORY:
+       2012-10-11 - Written - Bovy (IAS)
+    """
+    return S3(xs,pm,pv,taus)/S2(xs,pm,pv,taus)**1.5
+
 def panstarrs_sampling(nseasons=1,
                        startmjd=(2455317.500000-2400000.5)): #May 2010
     """
