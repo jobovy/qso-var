@@ -164,6 +164,40 @@ class VarQso():
         nepochs= [len(self.mjd[b]) for b in band]
         return nu.amin(nepochs)
         
+    def determine_seasons(self,duration,band,minnepochs=10):
+        """
+        NAME:
+           determine_seasons
+        PURPOSE:
+           determine the observing seasons
+        INPUT:
+           duration - duration of the season in yr
+           band - do the determination for this band
+           minnepochs - minimum number of epochs in a season
+        OUTPUT:
+           array of MJDs at the start of a season
+        HISTORY:
+           2012-10-11 - Written - Bovy (IAS)
+        """
+        #For each data point, see how many data-points are within duration of it
+        nepochs= self.nepochs(band)
+        ndata_in_duration= sc.zeros(nepochs,dtype='int')
+        this_mjd= sc.sort(self.mjd[band])
+        for ii in range(nepochs):
+            ndata_in_duration[ii]= sc.sum(((self.mjd[band]-this_mjd[ii]) < duration)*((self.mjd[band]-this_mjd[ii]) >= 0.))
+        #Find the local maxima of this array, bigger than minnepochs
+        thisn, ii= ndata_in_duration[0], 0
+        max_indx= []
+        for ii in range(1,nepochs):
+            if ndata_in_duration[ii] > thisn:
+                max_indx.append(ii)
+            thisn= ndata_in_duration[ii]
+        print ndata_in_duration
+        print max_indx
+        cand_mjd= this_mjd[max_indx]
+        cand= ndata_in_duration[max_indx]
+        return cand_mjd[(cand > minnepochs)]
+        
     def plotSF(self,band='r',nGP=5,nx=201,plotMean=False,**kwargs):
         """
         NAME:
