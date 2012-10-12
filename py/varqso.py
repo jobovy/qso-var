@@ -653,7 +653,7 @@ class VarQso():
                     out[band[jj]].append(trialindices[jj])
         return out
 
-    def resample(self,xs,band='ugriz',errors=True):
+    def resample(self,xs,band='ugriz',errors=True,noconstraints=False):
         """
         NAME:
            resample
@@ -663,6 +663,7 @@ class VarQso():
            xs - xs to resample (includes band info if relevant); a subset
                 of these are taken that are in band
            band - filters to sample
+           noconstraints - don't constrain the resampled lightcurve using the data
         OUTPUT:
            another VarQso object
         HISTORY:
@@ -700,9 +701,14 @@ class VarQso():
             mean[b]= nu.mean(self.m[b])
         #Now draw
         try:
-            GPsample= eval_gp(xs,mean_func,covar_func,(mf),(cf),nGP=1,
-                              constraints=self._build_trainset(self.fitband),
-                              tiny_cholesky=0.000001).reshape(len(xs))
+            if noconstraints:
+                GPsample= eval_gp(xs,mean_func,covar_func,(mf),(cf),nGP=1,
+                                  constraints=None,
+                                  tiny_cholesky=0.000001).reshape(len(xs))
+            else:
+                GPsample= eval_gp(xs,mean_func,covar_func,(mf),(cf),nGP=1,
+                                  constraints=self._build_trainset(self.fitband),
+                                  tiny_cholesky=0.000001).reshape(len(xs))
         except nu.linalg.linalg.LinAlgError:
             raise
             #ACTUALLY THIS NEVER HAPPENS AND THE CODE BLOCK BELOW IS UNTESTED
