@@ -30,6 +30,20 @@ def plotSkew(parser):
     for ii, key in enumerate(keys):
         allskews[ii,:]= skews[key]
         allgaussskews[ii,:]= gaussskews[key]
+    if not options.indx is None:
+        sigma= quantile(allgaussskews[options.indx,:,:],q=0.68)
+        bovy_plot.bovy_print(fig_width=7.)
+        bovy_plot.bovy_plot(taus*365.,allskews[options.indx,:],'k-',
+                            xlabel=r'$\mathrm{lag}\ \tau\ [\mathrm{days}]$',
+                            ylabel=r'$\mathrm{skew}(\tau)$',
+                            zorder=5,
+                            yrange=[-1.,1.])
+        pyplot.fill_between(taus*365.,sigma[0,:],sigma[1,:],color='0.75',zorder=0)
+        bovy_plot.bovy_plot(taus*365.,numpy.median(allgaussskews[options.indx,:,:],
+                                                   axis=0),'-',
+                            overplot=True,color='0.5')
+        bovy_plot.bovy_end_print(options.plotfilename)
+        return None
     indx= numpy.all(numpy.isnan(allskews),axis=1)
     allskews= allskews[True-indx,:]
     allgaussskews= allgaussskews[True-indx,:,:]
@@ -44,11 +58,12 @@ def plotSkew(parser):
                         xlabel=r'$\mathrm{lag}\ \tau\ [\mathrm{days}]$',
                         ylabel=r'$\mathrm{skew}(\tau)$',
                         zorder=5,
-                        yrange=[-2.,2.])
+                        yrange=[-1.,1.])
     pyplot.fill_between(taus*365.,sigma[0,:],sigma[1,:],color='0.75',zorder=0)
     bovy_plot.bovy_plot(taus*365.,numpy.median(mediangaussskew,axis=0),'-',
                         overplot=True,color='0.5')
     bovy_plot.bovy_end_print(options.plotfilename)
+    return None
 
 def quantile(t,q=0.68):
     """calculate the quantile of a distribution for this problem,
@@ -67,6 +82,8 @@ def get_options():
     parser = OptionParser(usage=usage)
     parser.add_option("-o",dest='plotfilename',default=None,
                       help="Name for plotfile")
+    parser.add_option("-i","--indx",dest='indx',default=None,type='float',
+                      help="Just plot this index")
     parser.add_option("-b","--band",dest='band',default='r',
                       help="band(s) to sample")
     parser.add_option("-t","--type",dest='type',default='powerlawSF',

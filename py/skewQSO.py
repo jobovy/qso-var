@@ -3,9 +3,9 @@ import os, os.path
 import numpy as nu
 import cPickle as pickle
 from optparse import OptionParser
-import signal
 from varqso import VarQso, LCmodel
-from fitQSO import save_pickles, QSOfilenames
+from fitQSO import QSOfilenames
+from galpy.util import save_pickles
 _DEBUG=True
 _ERASESTR= "                                                                                "
 def skewQSO(parser):
@@ -29,7 +29,7 @@ def skewQSO(parser):
         type= options.type
         mean= options.mean
         band= options.band
-        taus= nu.arange(options.dtau,options.taumax,options.dtau)
+        taus= nu.arange(options.dtau,options.taumax,options.dtau)/365.
     if os.path.exists(options.fitsfile):
         fitsfile= open(options.fitsfile,'rb')
         params= pickle.load(fitsfile)
@@ -94,17 +94,20 @@ def skewQSO(parser):
         gaussskews[key]= thisgaussskews
         savecount+= 1
         if savecount == options.saveevery:
-            print "Saving ..."
-            save_pickles(skews,gaussskews,type,band,mean,taus,savefilename)
+            sys.stdout.write('\r'+_ERASESTR+'\r')
+            sys.stdout.flush()
+            sys.stdout.write('\rSaving ...\r')
+            sys.stdout.flush()
+            save_pickles(savefilename,skews,gaussskews,type,band,mean,taus)
             savecount= 0
         count+= 1
     sys.stdout.write('\r'+_ERASESTR+'\r')
     sys.stdout.flush()
-    save_pickles(skews,gaussskews,type,band,mean,taus,savefilename)
+    save_pickles(savefilename,skews,gaussskews,type,band,mean,taus)
     print "All done"
 
 def get_options():
-    usage = "usage: %prog [options] <savefilename>\n\nsavefilename= name of the file that the samples will be saved to"
+    usage = "usage: %prog [options] <savefilename>\n\nsavefilename= name of the file that the skews will be saved to"
     parser = OptionParser(usage=usage)
     parser.add_option("-b","--band",dest='band',default='r',
                       help="band(s) to sample")
@@ -149,7 +152,7 @@ def get_options():
                       default=3,type='float',
                       help="lag spacing")
     parser.add_option("--taumax",dest='taumax',
-                      default=150,type='float',
+                      default=150.,type='float',
                       help="lag spacing")
     return parser
 
