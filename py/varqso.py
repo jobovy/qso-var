@@ -229,7 +229,7 @@ class VarQso():
             pv.append(thispv)
         #Calculate skew
         return skew(xs,pm,pv,sc.arange(len(taus)))
-            
+                    
     def plotSF(self,band='r',nGP=5,nx=201,plotMean=False,**kwargs):
         """
         NAME:
