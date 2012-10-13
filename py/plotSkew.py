@@ -30,8 +30,9 @@ def plotSkew(parser):
     for ii, key in enumerate(keys):
         allskews[ii,:]= skews[key]
         allgaussskews[ii,:]= gaussskews[key]
+    q= 0.99
     if not options.indx is None:
-        sigma= quantile(allgaussskews[options.indx,:,:],q=0.68)
+        sigma= quantile(allgaussskews[options.indx,:,:],q=q)
         bovy_plot.bovy_print(fig_width=7.)
         bovy_plot.bovy_plot(taus*365.,allskews[options.indx,:],'k-',
                             xlabel=r'$\mathrm{lag}\ \tau\ [\mathrm{days}]$',
@@ -51,7 +52,7 @@ def plotSkew(parser):
     medianskew= numpy.median(allskews,axis=0)
     mediangaussskew= numpy.median(allgaussskews,axis=0)
     #Determine 1-sigma
-    sigma= quantile(mediangaussskew,q=0.68)
+    sigma= quantile(mediangaussskew,q=q)
     #Plot
     bovy_plot.bovy_print(fig_width=7.)
     bovy_plot.bovy_plot(taus*365.,medianskew,'k-',
