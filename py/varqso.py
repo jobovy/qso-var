@@ -714,7 +714,6 @@ class VarQso():
                 times= times[(times < nu.amax(self.mjd[band]))]
                 dataSF= covar_func(0.,0.,(cf))-covar_func(0.,0.05,(cf))
                 amp= nu.sqrt(dataSF/wedgerate/0.05) #V=SF at 
-                print amp
                 GPsample= nu.zeros(xs.shape)
                 for ii in range(len(times)):
                     GPsample+= wedge_func(xs,times[ii],amp,tau=wedgetau)

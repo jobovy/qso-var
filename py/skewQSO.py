@@ -104,7 +104,7 @@ def skewQSO(parser):
             if options.wedge:
                 o.LCparams['gamma']= 1.
                 o.LCparams['logA']= o.LCparams['logA']\
-                    +numpy.log(0.05**v.LCparams['gamma']/0.05)
+                    +nu.log(0.05**v.LCparams['gamma']/0.05)
             thisgaussskews[ii,:]= o.skew(taus,band)
         skews[key]= thisskew
         gaussskews[key]= thisgaussskews
