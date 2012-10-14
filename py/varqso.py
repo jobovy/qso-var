@@ -707,7 +707,7 @@ class VarQso():
         try:
             if wedge:
                 #Perform wedge sampling
-                start= nu.amin(self.mjd[band])-200./365.
+                start= nu.amin(self.mjd[band])-wedgetau
                 dts= nu.random.exponential(scale=1./wedgerate,size=5000)#to be sure
                 times= nu.cumsum(dts)+start
                 #trim times
