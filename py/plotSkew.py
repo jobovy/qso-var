@@ -30,7 +30,9 @@ def plotSkew(parser):
     for ii, key in enumerate(keys):
         allskews[ii,:]= skews[key]
         allgaussskews[ii,:]= gaussskews[key]
+    #Statistic
     q= 0.99
+    statistic= numpy.mean
     if not options.indx is None:
         sigma= quantile(allgaussskews[options.indx,:,:],q=q)
         bovy_plot.bovy_print(fig_width=7.)
@@ -40,7 +42,7 @@ def plotSkew(parser):
                             zorder=5,
                             yrange=[-1.,1.])
         pyplot.fill_between(taus*365.,sigma[0,:],sigma[1,:],color='0.75',zorder=0)
-        bovy_plot.bovy_plot(taus*365.,numpy.median(allgaussskews[options.indx,:,:],
+        bovy_plot.bovy_plot(taus*365.,statistic(allgaussskews[options.indx,:,:],
                                                    axis=0),'-',
                             overplot=True,color='0.5')
         bovy_plot.bovy_end_print(options.plotfilename)
@@ -49,8 +51,8 @@ def plotSkew(parser):
     allskews= allskews[True-indx,:]
     allgaussskews= allgaussskews[True-indx,:,:]
     #Median
-    medianskew= numpy.median(allskews,axis=0)
-    mediangaussskew= numpy.median(allgaussskews,axis=0)
+    medianskew= statistic(allskews,axis=0)
+    mediangaussskew= statistic(allgaussskews,axis=0)
     #Determine 1-sigma
     sigma= quantile(mediangaussskew,q=q)
     #Plot
@@ -61,7 +63,7 @@ def plotSkew(parser):
                         zorder=5,
                         yrange=[-1.,1.])
     pyplot.fill_between(taus*365.,sigma[0,:],sigma[1,:],color='0.75',zorder=0)
-    bovy_plot.bovy_plot(taus*365.,numpy.median(mediangaussskew,axis=0),'-',
+    bovy_plot.bovy_plot(taus*365.,statistic(mediangaussskew,axis=0),'-',
                         overplot=True,color='0.5')
     bovy_plot.bovy_end_print(options.plotfilename)
     return None
