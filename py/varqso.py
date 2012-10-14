@@ -654,7 +654,7 @@ class VarQso():
         return out
 
     def resample(self,xs,band='ugriz',errors=True,noconstraints=False,
-                 wedge=False,wedgerate=0.25*365.):
+                 wedge=False,wedgerate=0.25*365.,wedgetau=200./365):
         """
         NAME:
            resample
@@ -666,6 +666,8 @@ class VarQso():
            band - filters to sample
            noconstraints - don't constrain the resampled lightcurve using the data
            wedge= if True, sample from wedge process (default: False)
+           wedgerate= rate of wedges
+           wedgetau= tau of wedges
         OUTPUT:
            another VarQso object
         HISTORY:
@@ -715,7 +717,7 @@ class VarQso():
                 print amp
                 GPsample= nu.zeros(xs.shape)
                 for ii in range(len(times)):
-                    GPsample+= wedge_func(xs,times[ii],amp)
+                    GPsample+= wedge_func(xs,times[ii],amp,tau=wedgetau)
             elif noconstraints:
                 GPsample= eval_gp(xs,mean_func,covar_func,(mf),(cf),nGP=1,
                                   constraints=None,
