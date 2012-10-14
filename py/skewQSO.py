@@ -6,6 +6,7 @@ from optparse import OptionParser
 from varqso import VarQso, LCmodel
 from fitQSO import QSOfilenames
 from galpy.util import save_pickles
+from plotFits import open_qsos
 _DEBUG=True
 _ERASESTR= "                                                                                "
 def skewQSO(parser):
@@ -51,6 +52,13 @@ def skewQSO(parser):
     qsos= QSOfilenames(dir=dir)
     savecount= 0
     count= len(skews)
+    #Read master file for redshifts
+    dataqsos= open_qsos()
+    qsoDict= {}
+    ii=0
+    for qso in dataqsos:
+        qsoDict[qso.oname.strip().replace(' ', '')+'.fit']= ii
+        ii+= 1
     for qso in qsos:
         key= os.path.basename(qso)
         if skews.has_key(key):
@@ -83,12 +91,20 @@ def skewQSO(parser):
         thisgaussskews= nu.zeros((options.nsamples,len(taus)))
         for ii in range(options.nsamples):
             #First re-sample
-            o= v.resample(v.mjd[band],band=band,noconstraints=True)
+            redshift= dataqsos[qsoDict[key]].z
+            o= v.resample(v.mjd[band],band=band,noconstraints=True,
+                          wedge=options.wedge,
+                          wedgerate=options.wedgerate*365./(1.+redshift),
+                          wedgetau=(1.+redshift)) #1yr
             o.LCparams= v.LCparams
             o.LC= v.LC
             o.fitband= v.fitband
             o.LCtype= v.LCtype
             o.LCmean= v.LCmean
+            if options.wedge:
+                o.LCparams['gamma']= 1.
+                o.LCparams['logA']= o.LCparams['logA']\
+                    +numpy.log(0.05**v.LCparams['gamma']/0.05)
             thisgaussskews[ii,:]= o.skew(taus,band)
         skews[key]= thisskew
         gaussskews[key]= thisgaussskews
@@ -154,6 +170,12 @@ def get_options():
     parser.add_option("--taumax",dest='taumax',
                       default=150.,type='float',
                       help="lag spacing")
+    parser.add_option("--wedge",action="store_true", dest="wedge",
+                      default=False,
+                      help="Use wedge model")
+    parser.add_option("--wedgerate",dest='wedgerate',
+                      default=0.1,type='float',
+                      help="wedge rate (rest-frame; /days)")
     return parser
 
 if __name__ == '__main__':
