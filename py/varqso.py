@@ -653,7 +653,8 @@ class VarQso():
                     out[band[jj]].append(trialindices[jj])
         return out
 
-    def resample(self,xs,band='ugriz',errors=True,noconstraints=False):
+    def resample(self,xs,band='ugriz',errors=True,noconstraints=False,
+                 wedge=False,wedgerate=0.25*365.):
         """
         NAME:
            resample
@@ -664,6 +665,7 @@ class VarQso():
                 of these are taken that are in band
            band - filters to sample
            noconstraints - don't constrain the resampled lightcurve using the data
+           wedge= if True, sample from wedge process (default: False)
         OUTPUT:
            another VarQso object
         HISTORY:
@@ -701,7 +703,20 @@ class VarQso():
             mean[b]= nu.mean(self.m[b])
         #Now draw
         try:
-            if noconstraints:
+            if wedge:
+                #Perform wedge sampling
+                start= nu.amin(self.mjd[band])-200./365.
+                dts= nu.random.exponential(scale=1./wedgerate,size=5000)#to be sure
+                times= nu.cumsum(dts)+start
+                #trim times
+                times= times[(times < nu.amax(self.mjd[band]))]
+                dataSF= covar_func(0.,0.,(cf))-covar_func(0.,0.05,(cf))
+                amp= nu.sqrt(dataSF/wedgerate/0.05) #V=SF at 
+                print amp
+                GPsample= nu.zeros(xs.shape)
+                for ii in range(len(times)):
+                    GPsample+= wedge_func(xs,times[ii],amp)
+            elif noconstraints:
                 GPsample= eval_gp(xs,mean_func,covar_func,(mf),(cf),nGP=1,
                                   constraints=None,
                                   tiny_cholesky=0.000001).reshape(len(xs))
@@ -1890,3 +1905,17 @@ def _as_recarray(recarray):
     for field in recarray.dtype.fields:
         newrecarray[field.lower()] = recarray.field(field)
     return newrecarray
+
+def wedge_func(t,tstart,amp,tau=200./365.):
+    tend= tstart+tau
+    if isinstance(t,nu.ndarray):
+        out= nu.empty(t.shape)
+        out= -amp/tau*(t-tend)
+        out[(t < tstart)]= 0.
+        out[(t > tend)]= 0.
+        return out
+    else:
+        if t < tstart or t > tend:
+            return 0.
+        else:
+            return -amp/tau*(t-tend)
