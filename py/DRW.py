@@ -1,6 +1,6 @@
 import scipy
-from gp.covarianceClass import *
-from gp.fast_cholesky import fast_cholesky_invert
+from flexgp.covarianceClass import *
+from flexgp.fast_cholesky import fast_cholesky_invert
 class covarFunc (covariance):
     """
     covarFunc DRW: Ornstein-Uhlenbeck covariance function with 
