@@ -654,7 +654,8 @@ class VarQso():
         return out
 
     def resample(self,xs,band='ugriz',errors=True,noconstraints=False,
-                 wedge=False,wedgerate=0.25*365.,wedgetau=200./365):
+                 wedge=False,wedgerate=0.25*365.,wedgetau=200./365,
+                 addlagged=False,lag=None,laggedxs=None):
         """
         NAME:
            resample
@@ -668,6 +669,10 @@ class VarQso():
            wedge= if True, sample from wedge process (default: False)
            wedgerate= rate of wedges
            wedgetau= tau of wedges
+           ##Following only work for single band
+           addlagged= False: if True, add a lagged version
+           lag= lag in yr if addlagged
+           laggedxs= xs for lagged curve (pre-lag, i.e., observer's frame)
         OUTPUT:
            another VarQso object
         HISTORY:
@@ -697,6 +702,10 @@ class VarQso():
         elif len(band) > 1 and not isinstance(xs[0],(int,float)) and \
                 len(xs[0]) == 2:
             xs= [x for x in xs if x[1] in band]
+        if addlagged:
+            xs= list(xs)
+            xs.extend(list(laggedxs-lag))
+            xs= nu.array(xs)
         #Now get ready for drawing
         cf= self.LC.cf
         mf= self.LC.mf
@@ -707,11 +716,11 @@ class VarQso():
         try:
             if wedge:
                 #Perform wedge sampling
-                start= nu.amin(self.mjd[band])-wedgetau
-                dts= nu.random.exponential(scale=1./wedgerate,size=5000)#to be sure
+                start= nu.amin(xs)-wedgetau
+                dts= nu.random.exponential(scale=1./wedgerate,size=10000)#to be sure
                 times= nu.cumsum(dts)+start
                 #trim times
-                times= times[(times < nu.amax(self.mjd[band]))]
+                times= times[(times < nu.amax(xs))]
                 dataSF= covar_func(0.,0.,(cf))-covar_func(0.,0.05,(cf))
                 amp= nu.sqrt(dataSF/wedgerate/0.05) #V=SF at 
                 GPsample= nu.zeros(xs.shape)
@@ -792,7 +801,18 @@ class VarQso():
         else:
             errs= nu.zeros(len(GPsample))
         #Setup VarQso object
-        return VarQso(xs,GPsample,errs,band=band,medianize=False)
+        if addlagged:
+            #Split xs
+            xs= xs[0:len(xs)-len(laggedxs)]
+            vA= VarQso(xs,GPsample[0:len(GPsample)-len(laggedxs)],
+                       errs[0:len(GPsample)-len(laggedxs)],
+                       band=band,medianize=False)
+            vB= VarQso(laggedxs,GPsample[len(GPsample)-len(laggedxs):len(GPsample)],
+                       errs[len(GPsample)-len(laggedxs):len(GPsample)],
+                       band=band,medianize=False)
+            return (vA,vB)
+        else:
+            return VarQso(xs,GPsample,errs,band=band,medianize=False)
 
     def fit(self,band,type='powerlawSF',loglike=False,mean='zero',
             init_params=None,fix=None):
