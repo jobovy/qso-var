@@ -2,7 +2,7 @@ import sys
 import numpy as nu
 import scipy as sc
 import inspect
-from scipy import signal
+from scipy import signal, optimize
 from matplotlib import pyplot
 #from astrometry.util import pyfits_utils as fu
 import pyfits
@@ -1127,6 +1127,87 @@ class VarQso():
         return -marginalLikelihood(params,trainSet,packing,
                                    thisCovarClass,None,False)
         
+    def cross_loglike(self,lag,vB,band,type=None,params=None,mean='zero'):
+        """
+        NAME:
+           cross_loglike
+        PURPOSE:
+           calculate the log likelihood of this lightcurve and a lagged 
+           second light curve given a model 
+           for the lightcurve SF/covariance
+        INPUT:
+           lag - a lag
+           vB - another VarQso object
+           band
+           type - covar/SF type
+           params - parameters of the covariance/SF
+        OUTPUT:
+           log likelihood
+        HISTORY:
+           2011-01-09 - Written - Bovy (NYU)
+        """
+        if type is None:
+            type= self.LCtype
+        if params is None:
+            params= self.LCparams
+        if mean is None:
+            mean= self.LCmean
+        listx=list(self.mjd[band])
+        listy=list(self.m[band]-nu.mean(self.m[band]))
+        noise=list(self.err_m[band])
+        listx.extend(list(vB.mjd[band]-lag))
+        listy.extend(list(vB.m[band]-nu.mean(vB.m[band])))
+        noise.extend(list(vB.err_m[band]))
+        listx= nu.array(listx)
+        listy= nu.array(listy)
+        noise= nu.array(noise)
+        trainSet= trainingSet(listx=listx,
+                              listy=listy,
+                              noise=noise)
+        LC= LCmodel(trainSet=trainSet,type=type,init_params=params,
+                    mean=mean)
+        (params,packing)= pack_params(LC.cf,LC.mf,None)
+        covarFuncName= inspect.getmodule(LC.cf).__name__
+        thisCovarClass= __import__(covarFuncName)
+        return -marginalLikelihood(params,trainSet,packing,
+                                   thisCovarClass,None,False)
+        
+    def fit_lag(self,vB,band,type='powerlawSF',mean='zero',
+                init_params=None,fix=None):
+        """
+        NAME:
+           fit
+        PURPOSE:
+           fit a lag of a second quasar wrt this primary quasar; 
+           structure function model is first fit to the data of this quasar
+           alone, then a lag is fit
+        INPUT:
+           vB - second light curve (VarQso object)
+           band - band to fit
+           type - type of structure function model to fit
+           loglike - return loglike in the parameters dict
+           mean - type of mean fitting ('zero','const',...)
+           init_params - initial parameters for fit
+           fix= None or list of parameters to hold fixed
+        OUTPUT:
+           lag in yr
+        HISTORY:
+           2010-12-21 - Written - Bovy (NYU)
+        """
+        hasfit= hasattr(self,'LCparams')
+        if not hasfit: #build trainingset and optimize before sampling
+            if band is None:
+                raise IOError("'band' must be set")
+            trainSet= self._build_trainset(band)
+            self.fitband= band
+            self.LC= LCmodel(trainSet=trainSet,type=type,mean=mean)
+            self.LCparams= self.LC.fit(fix=fix)
+            self.LCtype= type
+            self.LCmean= mean
+        lag= optimize.fmin_powell((lambda x: -self.cross_loglike(x,vB,band)),
+                                  0.,args=())
+        return lag
+
     def plot_like(self,band,type=None,params=None,mean='zero',
                   xrange=None,yrange=None,**kwargs):
         """
