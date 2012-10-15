@@ -1172,7 +1172,8 @@ class VarQso():
                                    thisCovarClass,None,False)
         
     def fit_lag(self,vB,band,type='powerlawSF',mean='zero',
-                init_params=None,fix=None):
+                init_params=None,fix=None,
+                init_lag=1.):
         """
         NAME:
            fit
@@ -1188,6 +1189,7 @@ class VarQso():
            mean - type of mean fitting ('zero','const',...)
            init_params - initial parameters for fit
            fix= None or list of parameters to hold fixed
+           init_lag= initial lag for the fit
         OUTPUT:
            lag in yr
         HISTORY:
@@ -1204,7 +1206,7 @@ class VarQso():
             self.LCtype= type
             self.LCmean= mean
         lag= optimize.fmin_powell((lambda x: -self.cross_loglike(x,vB,band)),
-                                  0.,args=())
+                                  init_lag,args=())
         return lag
 
     def plot_like(self,band,type=None,params=None,mean='zero',
