@@ -1789,7 +1789,7 @@ def S3(xs,pm,pv,taus,_retoutnorm=False):
     NAME:
        S3
     PURPOSE:
-       calculate S3 = <(h(t+taus)-h(t))^3>
+       calculate S3 = <(h(t)-h(t+tau))^3>
     INPUT:
        xs - points at which function is evaluated
        pm - function

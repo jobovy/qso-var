@@ -28,8 +28,8 @@ def plotSkew(parser):
     allgaussskews= numpy.zeros((len(keys),gaussskews[keys[0]].shape[0],
                                 len(taus)))
     for ii, key in enumerate(keys):
-        allskews[ii,:]= skews[key]
-        allgaussskews[ii,:]= gaussskews[key]
+        allskews[ii,:]= -skews[key] #go to regular definition
+        allgaussskews[ii,:]= -gaussskews[key]
     #Statistic
     q= 0.99
     statistic= numpy.mean
