@@ -50,6 +50,13 @@ def skewQSO(parser):
     else:
         dir= '../data/s82qsos/'
     qsos= QSOfilenames(dir=dir)
+    if not options.split is None:
+        splitarr= nu.arange(len(qsos)) / int(nu.ceil(len(qsos)/float(options.split)))
+        splitDict= {}
+        for ii, qso in enumerate(qsos):
+            key= os.path.basename(qso)
+            splitDict[key]= splitarr[ii]
+        print "Running bin %i ..." % options.rah
     savecount= 0
     count= len(skews)
     #Read master file for redshifts
@@ -63,15 +70,19 @@ def skewQSO(parser):
         key= os.path.basename(qso)
         if skews.has_key(key):
             continue
-        try:
-            if int(key[5:7]) != options.rah and options.rah != -1:
+        if options.split:
+            if splitDict[key] != options.rah:
                 continue
-        except ValueError:
-            if options.rah == -2 or options.rah == -1:
-                pass
-            else:
-                print "Skipping ValueError "+key
-                continue
+        else:
+            try:
+                if int(key[5:7]) != options.rah and options.rah != -1:
+                    continue
+            except ValueError:
+                if options.rah == -2 or options.rah == -1:
+                    pass
+                else:
+                    print "Skipping ValueError "+key
+                    continue
         sys.stdout.write('\r'+_ERASESTR+'\r')
         sys.stdout.flush()
         sys.stdout.write('\rWorking on %s: %s\r' % (str(count),key))
@@ -142,7 +153,10 @@ def get_options():
                       help="Save every --saveevery iterations")
     parser.add_option("--rah",dest='rah',type='int',
                       default=-1,
-                      help="RA hour to consider (-1: all, -2: ValueError)")
+                      help="RA hour to consider (-1: all, -2: ValueError), if combined with split, bin to use")
+    parser.add_option("--split",dest='split',type='int',
+                      default=None,
+                      help="split the sample in this number of bins")
     parser.add_option("--star",action="store_true", dest="star",
                       default=False,
                       help="Sample stars")

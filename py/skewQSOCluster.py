@@ -2,14 +2,19 @@ import os, os.path
 import sys
 import subprocess
 import pypar
+import numpy
 from skewQSO import get_options
 myid= pypar.rank()
 node= pypar.get_processor_name()
-ras= [0,1,2,3,20,21,22,23,-2]
-ra= ras[myid]
 #options
 parser= get_options()
 options,args= parser.parse_args()
+#Parse cpu
+if not options.split is None:
+    ras= numpy.arange(options.split)
+else:
+    ras= [0,1,2,3,20,21,22,23,-2]
+ra= ras[myid]
 #cmd
 cmd= [os.getenv('PYTHON'),
       'skewQSO.py',
@@ -25,6 +30,8 @@ cmd= [os.getenv('PYTHON'),
       '--taumax=%f' % options.taumax,
       '--wedgerate=%f' % options.wedgerate]
 if options.wedge: cmd.append('--wedge')
+if not options.split is None:
+    cmd.append('--split=%i' % options.split)
 #Now run
 tryCall= True
 while tryCall:
