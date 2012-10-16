@@ -70,7 +70,7 @@ def skewQSO(parser):
         key= os.path.basename(qso)
         if skews.has_key(key):
             continue
-        if options.split:
+        if not options.split is None:
             if splitDict[key] != options.rah:
                 continue
         else:
