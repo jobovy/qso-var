@@ -1,7 +1,7 @@
 import scipy
-from gp.covarianceClass import *
-from gp.meanClass import *
-from gp.fast_cholesky import fast_cholesky_invert
+from flexgp.covarianceClass import *
+from flexgp.meanClass import *
+from flexgp.fast_cholesky import fast_cholesky_invert
 _MAXH= 10.
 class meanFunc (mean):
     """
