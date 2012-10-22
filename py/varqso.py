@@ -879,7 +879,8 @@ class VarQso():
                 raise IOError("'band' must be set")
             trainSet= self._build_trainset(band)
             self.fitband= band
-            self.LC= LCmodel(trainSet=trainSet,type=type,mean=mean)
+            self.LC= LCmodel(trainSet=trainSet,type=type,mean=mean,
+                             init_params=self.LCparams)
             self.LCparams= self.LC.fit(fix=fix)
             self.LCtype= type
             self.LCmean= mean
@@ -1223,7 +1224,8 @@ class VarQso():
                 raise IOError("'band' must be set")
             trainSet= self._build_trainset(band)
             self.fitband= band
-            self.LC= LCmodel(trainSet=trainSet,type=type,mean=mean)
+            self.LC= LCmodel(trainSet=trainSet,type=type,mean=mean,
+                             init_params=self.LCparams)
             self.LCparams= self.LC.fit(fix=fix)
             self.LCtype= type
             self.LCmean= mean
