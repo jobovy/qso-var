@@ -111,10 +111,16 @@ def skewQSO(parser):
                 redshift= 0.
             else:
                 redshift= dataqsos[qsoDict[key]].z
-            o= v.resample(v.mjd[band],band=band,noconstraints=True,
-                          wedge=options.wedge,
-                          wedgerate=options.wedgerate*365.25/(1.+redshift),
-                          wedgetau=(1.+redshift)) #1yr
+            try:
+                o= v.resample(v.mjd[band],band=band,noconstraints=True,
+                              wedge=options.wedge,
+                              wedgerate=options.wedgerate*365.25/(1.+redshift),
+                              wedgetau=(1.+redshift)) #1yr
+            except nu.linalg.linalg.LinAlgError:
+                if params[key]['gamma'] > 1.5:
+                    continue #re-sampling fails because of bad gamma
+                else:
+                    print key, params[key]
             o.LCparams= v.LCparams
             o.LC= v.LC
             o.fitband= v.fitband
