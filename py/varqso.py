@@ -711,6 +711,7 @@ class VarQso():
         #Now get ready for drawing
         cf= self.LC.cf
         mf= self.LC.mf
+        tiny_cholesky=10.**-4.*covar_func(0.,0.,(cf))
         mean={}
         for b in band:
             mean[b]= nu.mean(self.m[b])
@@ -731,11 +732,11 @@ class VarQso():
             elif noconstraints:
                 GPsample= eval_gp(xs,mean_func,covar_func,(mf),(cf),nGP=1,
                                   constraints=None,
-                                  tiny_cholesky=0.000001).reshape(len(xs))
+                                  tiny_cholesky=tiny_cholesky).reshape(len(xs))
             else:
                 GPsample= eval_gp(xs,mean_func,covar_func,(mf),(cf),nGP=1,
                                   constraints=self._build_trainset(self.fitband),
-                                  tiny_cholesky=0.000001).reshape(len(xs))
+                                  tiny_cholesky=tiny_cholesky).reshape(len(xs))
         except nu.linalg.linalg.LinAlgError:
             raise
             #ACTUALLY THIS NEVER HAPPENS AND THE CODE BLOCK BELOW IS UNTESTED
