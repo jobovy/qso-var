@@ -115,11 +115,12 @@ def xdGamma(parser):
     xcovar= numpy.zeros((options.k,nparams,nparams))
     for kk in range(options.k):
         xcovar[kk,:,:]= numpy.cov(ydata.T)
-    extreme_deconvolution(ydata,ycovar,xamp,xmean,xcovar)
+    ll= extreme_deconvolution(ydata,ycovar,xamp,xmean,xcovar)
     if True:
         print xamp
         print xmean
         print xcovar
+        print ll
     #Prepare for saving
     print "Preparing output for saving ..."
     #Save
@@ -174,6 +175,7 @@ def xdGamma(parser):
         pickle.dump(xamp,outfile)
         pickle.dump(xmean,outfile)
         pickle.dump(xcovar,outfile)
+        pickle.dump(ll,outfile)
         outfile.close()
     return
 
