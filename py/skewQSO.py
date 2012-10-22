@@ -60,12 +60,13 @@ def skewQSO(parser):
     savecount= 0
     count= len(skews)
     #Read master file for redshifts
-    dataqsos= open_qsos()
-    qsoDict= {}
-    ii=0
-    for qso in dataqsos:
-        qsoDict[qso.oname.strip().replace(' ', '')+'.fit']= ii
-        ii+= 1
+    if not options.star:
+        dataqsos= open_qsos()
+        qsoDict= {}
+        ii=0
+        for qso in dataqsos:
+            qsoDict[qso.oname.strip().replace(' ', '')+'.fit']= ii
+            ii+= 1
     for qso in qsos:
         key= os.path.basename(qso)
         if skews.has_key(key):
@@ -102,7 +103,10 @@ def skewQSO(parser):
         thisgaussskews= nu.zeros((options.nsamples,len(taus)))
         for ii in range(options.nsamples):
             #First re-sample
-            redshift= dataqsos[qsoDict[key]].z
+            if options.star:
+                redshift= 0.
+            else:
+                redshift= dataqsos[qsoDict[key]].z
             o= v.resample(v.mjd[band],band=band,noconstraints=True,
                           wedge=options.wedge,
                           wedgerate=options.wedgerate*365./(1.+redshift),
