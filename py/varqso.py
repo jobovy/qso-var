@@ -1527,8 +1527,9 @@ class LCmodel():
                                   'sz':nu.array([1.])}
         if not init_params is None:
             params= init_params
+            mean_params= init_params
         self.cf= covarFunc(**params)
-        self.mf= meanFunc(**params)
+        self.mf= meanFunc(**mean_params)
 
     def fit(self,fix=None):
         """
