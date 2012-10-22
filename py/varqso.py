@@ -215,6 +215,8 @@ class VarQso():
         #First determine the seasons
         start_mjds= self.determine_seasons(taus[-1],band,
                                            minnepochs=minnepochs)
+        if len(start_mjds) == 0:
+            raise RuntimeError("Object does not have a season with a sufficient number of epochs ...")
         #Then interpolate the seasonal lightcurve using Wiener filter
         hasfit= hasattr(self,'LCparams')
         if not hasfit:

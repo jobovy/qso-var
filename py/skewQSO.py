@@ -19,7 +19,7 @@ def skewQSO(parser):
         savefile= open(savefilename,'rb')
         skews= pickle.load(savefile)
         gaussskews= pickle.load(savefile)
-        type= pickle.load(savefile)
+        fittype= pickle.load(savefile)
         band= pickle.load(savefile)
         mean= pickle.load(savefile)
         taus= pickle.load(savefile)      
@@ -27,7 +27,7 @@ def skewQSO(parser):
     else:
         skews= {}
         gaussskews= {}
-        type= options.type
+        fittype= options.type
         mean= options.mean
         band= options.band
         taus= nu.arange(options.dtau,options.taumax,options.dtau)/365.
@@ -94,12 +94,15 @@ def skewQSO(parser):
             continue
         #Set best-fit
         v.LCparams= params[key]
-        v.LC= LCmodel(trainSet=v._build_trainset(band),type=type,mean=mean)
-        v.LCtype= type
+        v.LC= LCmodel(trainSet=v._build_trainset(band),type=fittype,mean=mean)
+        v.LCtype= fittype
         v.LCmean= mean
         v.fitband= band
         #Now compute skew and Gaussian samples
-        thisskew= v.skew(taus,band)
+        try:
+            thisskew= v.skew(taus,band)
+        except RuntimeError:
+            continue
         thisgaussskews= nu.zeros((options.nsamples,len(taus)))
         for ii in range(options.nsamples):
             #First re-sample
@@ -129,12 +132,12 @@ def skewQSO(parser):
             sys.stdout.flush()
             sys.stdout.write('\rSaving ...\r')
             sys.stdout.flush()
-            save_pickles(savefilename,skews,gaussskews,type,band,mean,taus)
+            save_pickles(savefilename,skews,gaussskews,fittype,band,mean,taus)
             savecount= 0
         count+= 1
     sys.stdout.write('\r'+_ERASESTR+'\r')
     sys.stdout.flush()
-    save_pickles(savefilename,skews,gaussskews,type,band,mean,taus)
+    save_pickles(savefilename,skews,gaussskews,fittype,band,mean,taus)
     print "All done"
 
 def get_options():
