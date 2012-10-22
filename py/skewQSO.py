@@ -30,7 +30,7 @@ def skewQSO(parser):
         fittype= options.type
         mean= options.mean
         band= options.band
-        taus= nu.arange(options.dtau,options.taumax,options.dtau)/365.
+        taus= nu.arange(options.dtau,options.taumax,options.dtau)/365.25
     if os.path.exists(options.fitsfile):
         fitsfile= open(options.fitsfile,'rb')
         params= pickle.load(fitsfile)
@@ -94,7 +94,8 @@ def skewQSO(parser):
             continue
         #Set best-fit
         v.LCparams= params[key]
-        v.LC= LCmodel(trainSet=v._build_trainset(band),type=fittype,mean=mean)
+        v.LC= LCmodel(trainSet=v._build_trainset(band),type=fittype,mean=mean,
+                      init_params=params[key])
         v.LCtype= fittype
         v.LCmean= mean
         v.fitband= band
@@ -112,7 +113,7 @@ def skewQSO(parser):
                 redshift= dataqsos[qsoDict[key]].z
             o= v.resample(v.mjd[band],band=band,noconstraints=True,
                           wedge=options.wedge,
-                          wedgerate=options.wedgerate*365./(1.+redshift),
+                          wedgerate=options.wedgerate*365.25/(1.+redshift),
                           wedgetau=(1.+redshift)) #1yr
             o.LCparams= v.LCparams
             o.LC= v.LC
