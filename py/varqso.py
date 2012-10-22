@@ -656,7 +656,7 @@ class VarQso():
         return out
 
     def resample(self,xs,band='ugriz',errors=True,noconstraints=False,
-                 wedge=False,wedgerate=0.25*365.,wedgetau=200./365,
+                 wedge=False,wedgerate=0.25*365.25,wedgetau=200./365.25,
                  addlagged=False,lag=None,laggedxs=None):
         """
         NAME:
@@ -1412,7 +1412,7 @@ class LCmodel():
                     from gp.periodicOU_ARD import covarFunc  
                 if init_params is None:
                     params= {'logl': nu.array([-1.37742591]), 
-                             'logP':nu.array([nu.log(1./365.)]),
+                             'logP':nu.array([nu.log(1./365.25)]),
                              'loga2': nu.array([-3.47341754])}
             if mean == 'zero':
                 try:
@@ -1888,7 +1888,7 @@ def S2(xs,pm,pv,taus,_retoutnorm=False):
         return (out,norm)
     else:
         return out
-
+ 
 def S3(xs,pm,pv,taus,_retoutnorm=False):
     """
     NAME:
@@ -2012,7 +2012,7 @@ def _as_recarray(recarray):
         newrecarray[field.lower()] = recarray.field(field)
     return newrecarray
 
-def wedge_func(t,tstart,amp,tau=200./365.):
+def wedge_func(t,tstart,amp,tau=200./365.25):
     tend= tstart+tau
     if isinstance(t,nu.ndarray):
         out= nu.empty(t.shape)
