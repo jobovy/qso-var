@@ -36,13 +36,13 @@ def plotSkew(parser):
     if not options.indx is None:
         sigma= quantile(allgaussskews[options.indx,:,:],q=q)
         bovy_plot.bovy_print(fig_width=7.)
-        bovy_plot.bovy_plot(taus*365.,allskews[options.indx,:],'k-',
+        bovy_plot.bovy_plot(taus*365.25,allskews[options.indx,:],'k-',
                             xlabel=r'$\mathrm{lag}\ \tau\ [\mathrm{days}]$',
                             ylabel=r'$\mathrm{skew}(\tau)$',
                             zorder=5,
                             yrange=[-1.,1.])
-        pyplot.fill_between(taus*365.,sigma[0,:],sigma[1,:],color='0.75',zorder=0)
-        bovy_plot.bovy_plot(taus*365.,statistic(allgaussskews[options.indx,:,:],
+        pyplot.fill_between(taus*365.25,sigma[0,:],sigma[1,:],color='0.75',zorder=0)
+        bovy_plot.bovy_plot(taus*365.25,statistic(allgaussskews[options.indx,:,:],
                                                    axis=0),'-',
                             overplot=True,color='0.5')
         bovy_plot.bovy_end_print(options.plotfilename)
@@ -57,13 +57,13 @@ def plotSkew(parser):
     sigma= quantile(mediangaussskew,q=q)
     #Plot
     bovy_plot.bovy_print(fig_width=7.)
-    bovy_plot.bovy_plot(taus*365.,medianskew,'k-',
+    bovy_plot.bovy_plot(taus*365.25,medianskew,'k-',
                         xlabel=r'$\mathrm{lag}\ \tau\ [\mathrm{days}]$',
                         ylabel=r'$\mathrm{skew}(\tau)$',
                         zorder=5,
                         yrange=[-1.,1.])
-    pyplot.fill_between(taus*365.,sigma[0,:],sigma[1,:],color='0.75',zorder=0)
-    bovy_plot.bovy_plot(taus*365.,statistic(mediangaussskew,axis=0),'-',
+    pyplot.fill_between(taus*365.25,sigma[0,:],sigma[1,:],color='0.75',zorder=0)
+    bovy_plot.bovy_plot(taus*365.25,statistic(mediangaussskew,axis=0),'-',
                         overplot=True,color='0.5')
     bovy_plot.bovy_end_print(options.plotfilename)
     return None
