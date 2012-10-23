@@ -231,7 +231,7 @@ class VarQso():
         cand= ndata_in_duration[max_indx]
         return cand_duration[(cand > minnepochs)]
 
-    def skew(self,taus,band,minnepochs=15,**kwargs):
+    def skew(self,taus,band,minnepochs=15,duration=150./365.25,**kwargs):
         """
         NAME:
            skew
@@ -248,7 +248,7 @@ class VarQso():
            2012-10-11 - Written - Bovy (IAS)
         """
         #First determine the seasons
-        start_mjds= self.determine_seasons(taus[-1],band,
+        start_mjds= self.determine_seasons(duration,band,
                                            minnepochs=minnepochs)
         if len(start_mjds) == 0:
             raise RuntimeError("Object does not have a season with a sufficient number of epochs ...")
