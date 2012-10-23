@@ -196,6 +196,41 @@ class VarQso():
         cand= ndata_in_duration[max_indx]
         return cand_mjd[(cand > minnepochs)]
 
+    def determine_seasons_duration(self,duration,band,minnepochs=10):
+        """
+        NAME:
+           determine_seasons_duration
+        PURPOSE:
+           determine the observing seasons' duration
+        INPUT:
+           duration - duration of the season in yr (upper limit)
+           band - do the determination for this band
+           minnepochs - minimum number of epochs in a season
+        OUTPUT:
+           array of MJDs at the start of a season
+        HISTORY:
+           2012-10-11 - Written - Bovy (IAS)
+        """
+        #For each data point, see how many data-points are within duration of it, and determine the duration
+        nepochs= self.nepochs(band)
+        ndata_in_duration= sc.zeros(nepochs,dtype='int')
+        season_duration= sc.zeros(nepochs)
+        this_mjd= sc.sort(self.mjd[band])
+        for ii in range(nepochs):
+            ndata_in_duration[ii]= sc.sum(((self.mjd[band]-this_mjd[ii]) < duration)*((self.mjd[band]-this_mjd[ii]) >= 0.))
+            season_duration[ii]= sc.amax(self.mjd[band][((self.mjd[band]-this_mjd[ii]) < duration)*((self.mjd[band]-this_mjd[ii]) >= 0.)])-this_mjd[ii]
+        #Find the local maxima of this array, bigger than minnepochs
+        thisn, ii= ndata_in_duration[0], 0
+        max_indx= []
+        for ii in range(1,nepochs):
+            if ndata_in_duration[ii] > thisn:
+                max_indx.append(ii)
+            thisn= ndata_in_duration[ii]
+        cand_mjd= this_mjd[max_indx]
+        cand_duration= season_duration[max_indx]
+        cand= ndata_in_duration[max_indx]
+        return cand_duration[(cand > minnepochs)]
+
     def skew(self,taus,band,minnepochs=15,**kwargs):
         """
         NAME:
