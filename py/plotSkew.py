@@ -32,7 +32,7 @@ def plotSkew(parser):
         allgaussskews[ii,:]= -gaussskews[key]
     #Statistic
     q= 0.99
-    statistic= numpy.mean
+    statistic= numpy.median
     if not options.indx is None:
         sigma= quantile(allgaussskews[options.indx,:,:],q=q)
         bovy_plot.bovy_print(fig_width=7.)
