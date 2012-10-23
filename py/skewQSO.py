@@ -194,10 +194,10 @@ def get_options():
                       default=None,
                       help="Input file if --resampled")
     parser.add_option("--dtau",dest='dtau',
-                      default=3,type='float',
+                      default=1,type='float',
                       help="lag spacing")
     parser.add_option("--taumax",dest='taumax',
-                      default=150.,type='float',
+                      default=40.,type='float',
                       help="lag spacing")
     parser.add_option("--wedge",action="store_true", dest="wedge",
                       default=False,
