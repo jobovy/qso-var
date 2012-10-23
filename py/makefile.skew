@@ -32,6 +32,11 @@ $(FIGDIR)/powerlawSF_constmean_r_skew.ps: plotSkew.py
 	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_r_skew.sav -o $@
 $(FIGDIR)/powerlawSF_constmean_i_skew.ps: plotSkew.py
 	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_i_skew.sav -o $@
+#Dist
+$(FIGDIR)/powerlawSF_constmean_u_skewdist.ps: plotSkewDist.py
+	$(PYTHON) plotSkewDist.py ../skew/powerlawSF_constmean_u_skew.sav -o $@
+$(FIGDIR)/powerlawSF_constmean_g_skewdist.ps: plotSkewDist.py
+	$(PYTHON) plotSkewDist.py ../skew/powerlawSF_constmean_g_skew.sav -o $@
 
 #RR Lyrae
 $(FIGDIR)/rrlyrae_powerlawSF_constmean_u_skew.ps: plotSkew.py
@@ -42,6 +47,9 @@ $(FIGDIR)/rrlyrae_powerlawSF_constmean_r_skew.ps: plotSkew.py
 	$(PYTHON) plotSkew.py ../skew/rrlyrae_powerlawSF_constmean_r_skew.sav -o $@
 $(FIGDIR)/rrlyrae_powerlawSF_constmean_i_skew.ps: plotSkew.py
 	$(PYTHON) plotSkew.py ../skew/rrlyrae_powerlawSF_constmean_i_skew.sav -o $@
+#Dist
+$(FIGDIR)/rrlyrae_powerlawSF_constmean_g_skewdist.ps: plotSkewDist.py
+	$(PYTHON) plotSkewDist.py ../skew/rrlyrae_powerlawSF_constmean_g_skew.sav -o $@
 
 #Stars
 $(FIGDIR)/star_powerlawSF_constmean_u_skew.ps: plotSkew.py
@@ -52,6 +60,9 @@ $(FIGDIR)/star_powerlawSF_constmean_r_skew.ps: plotSkew.py
 	$(PYTHON) plotSkew.py ../skew/star_powerlawSF_constmean_r_skew.sav -o $@
 $(FIGDIR)/star_powerlawSF_constmean_i_skew.ps: plotSkew.py
 	$(PYTHON) plotSkew.py ../skew/star_powerlawSF_constmean_i_skew.sav -o $@
+#Dist
+$(FIGDIR)/star_powerlawSF_constmean_g_skewdist.ps: plotSkewDist.py
+	$(PYTHON) plotSkewDist.py ../skew/star_powerlawSF_constmean_g_skew.sav -o $@
 
 #Skews u
 $(FIGDIR)/powerlawSF_constmean_u_wedge1_skew.ps: plotSkew.py
