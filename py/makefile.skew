@@ -1,0 +1,59 @@
+FIGDIR=../../bovy/nongauss-qso/tex
+
+all: $(FIGDIR)/powerlawSF_constmean_u_skew.ps \
+     $(FIGDIR)/powerlawSF_constmean_g_skew.ps \
+     $(FIGDIR)/powerlawSF_constmean_r_skew.ps \
+     $(FIGDIR)/powerlawSF_constmean_i_skew.ps \
+     $(FIGDIR)/powerlawSF_constmean_u_wedge1_skew.ps \
+     $(FIGDIR)/powerlawSF_constmean_u_wedge0.25_skew.ps \
+     $(FIGDIR)/powerlawSF_constmean_u_wedge0.05_skew.ps \
+     $(FIGDIR)/powerlawSF_constmean_g_wedge0.5_skew.ps \
+     $(FIGDIR)/powerlawSF_constmean_g_wedge0.1_skew.ps \
+     $(FIGDIR)/powerlawSF_constmean_g_wedge0.01_skew.ps \
+     $(FIGDIR)/powerlawSF_constmean_r_wedge1_skew.ps \
+     $(FIGDIR)/powerlawSF_constmean_r_wedge0.25_skew.ps \
+     $(FIGDIR)/powerlawSF_constmean_r_wedge0.05_skew.ps
+
+#Gaussian
+$(FIGDIR)/powerlawSF_constmean_u_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_u_skew.sav -o $@
+$(FIGDIR)/powerlawSF_constmean_g_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_g_skew.sav -o $@
+$(FIGDIR)/powerlawSF_constmean_r_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_r_skew.sav -o $@
+$(FIGDIR)/powerlawSF_constmean_i_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_i_skew.sav -o $@
+
+#RR Lyrae
+$(FIGDIR)/rrlyrae_powerlawSF_constmean_u_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/rrlyrae_powerlawSF_constmean_u_skew.sav -o $@
+$(FIGDIR)/rrlyrae_powerlawSF_constmean_g_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/rrlyrae_powerlawSF_constmean_g_skew.sav -o $@
+$(FIGDIR)/rrlyrae_powerlawSF_constmean_r_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/rrlyrae_powerlawSF_constmean_r_skew.sav -o $@
+$(FIGDIR)/rrlyrae_powerlawSF_constmean_i_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/rrlyrae_powerlawSF_constmean_i_skew.sav -o $@
+
+#Skews u
+$(FIGDIR)/powerlawSF_constmean_u_wedge1_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_u_skew_wedge1.sav -o $@
+$(FIGDIR)/powerlawSF_constmean_u_wedge0.25_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_u_skew_wedge0.25.sav -o $@
+$(FIGDIR)/powerlawSF_constmean_u_wedge0.05_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_u_skew_wedge0.05.sav -o $@
+
+#Skews u
+$(FIGDIR)/powerlawSF_constmean_g_wedge0.5_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_g_skew_wedge0.5.sav -o $@
+$(FIGDIR)/powerlawSF_constmean_g_wedge0.1_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_g_skew_wedge0.1.sav -o $@
+$(FIGDIR)/powerlawSF_constmean_g_wedge0.01_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_g_skew_wedge0.01.sav -o $@
+
+#Skews r
+$(FIGDIR)/powerlawSF_constmean_r_wedge1_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_r_skew_wedge1.sav -o $@
+$(FIGDIR)/powerlawSF_constmean_r_wedge0.25_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_r_skew_wedge0.25.sav -o $@
+$(FIGDIR)/powerlawSF_constmean_r_wedge0.05_skew.ps: plotSkew.py
+	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_r_skew_wedge0.05.sav -o $@
