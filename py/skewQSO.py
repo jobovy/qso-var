@@ -59,7 +59,7 @@ def skewQSO(parser):
         print "Running bin %i ..." % options.rah
     savecount= 0
     count= len(skews)
-    if not options.star:
+    if not options.star and not options.rrlyrae:
         #Read master file for redshifts
         dataqsos= open_qsos()
         qsoDict= {}
@@ -107,7 +107,7 @@ def skewQSO(parser):
         thisgaussskews= nu.zeros((options.nsamples,len(taus)))
         for ii in range(options.nsamples):
             #First re-sample
-            if options.star:
+            if options.star or options.rrlyrae:
                 redshift= 0.
             else:
                 redshift= dataqsos[qsoDict[key]].z
@@ -117,8 +117,9 @@ def skewQSO(parser):
                               wedgerate=options.wedgerate*365.25/(1.+redshift),
                               wedgetau=(1.+redshift)) #1yr
             except nu.linalg.linalg.LinAlgError:
-                if params[key]['gamma'] > 1.5:
-                    continue #re-sampling fails because of bad gamma
+                if params[key]['gamma'] > 1.5 \
+                        or params[key]['logA'] < -10.:
+                    continue #re-sampling fails because of bad gamma/logA
                 else:
                     print key, params[key]
             o.LCparams= v.LCparams
