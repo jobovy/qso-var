@@ -3,7 +3,7 @@ from flexgp.covarianceClass import *
 _MAXH= 10.
 class covarFunc (covariance):
     """
-    covarFunc twopowerlawSF: covariance function with a power-law
+    covarFunc brokenpowerlawSF: covariance function with a power-law
                           structure function
 
     powerlawSF(x,x')= s^2-A/2 (alpha |x-x'|^gamma_1 + (1-alpha) |x-x'|^gamma_2)
@@ -41,13 +41,18 @@ class covarFunc (covariance):
         else:
             self.gamma2= 0.
         self._dict['gamma2']= self.gamma2
-        if kwargs.has_key('alpha'):
-            self.alpha= kwargs['alpha']
+        if kwargs.has_key('breakt'):
+            self.breakt= kwargs['breakt']
         else:
-            self.alpha= 0.5
-        self._dict['alpha']= self.alpha
+            self.breakt= 0.5
+        self._dict['breakt']= self.breakt
         #Define shortcuts
         self.A= scipy.exp(self.logA)
+        #if self.breakt < 1.:
+        #    self.logA-= (self.gamma1-self.gamma2)*scipy.log(self.breakt)
+        #    self.A= scipy.exp(self.logA)
+        #    self._dict['logA']= self.logA
+        self.Atb= self.A*self.breakt**(self.gamma1-self.gamma2)
 
     def evaluate(self,x,xp):
         """
@@ -65,7 +70,7 @@ class covarFunc (covariance):
         """
         if self.gamma1 > 2. or self.gamma1 < 0.: return -9999.99
         if self.gamma2 > 2. or self.gamma2 < 0.: return -9999.99
-        if self.alpha > 1. or self.alpha < 0.: return -9999.99
+        if self.breakt <= 0.: return -9999.99
         if not isinstance(x,numpy.ndarray):
             x= numpy.array(x)
         if not isinstance(xp,numpy.ndarray):
@@ -74,8 +79,10 @@ class covarFunc (covariance):
 
     def _sf(self,x):
         if numpy.fabs(x) > _MAXH: return self._sf(_MAXH)
-        return self.A*(self.alpha*numpy.fabs(x)**self.gamma1
-                       +(1.-self.alpha)*numpy.fabs(x)**self.gamma2)
+        if numpy.fabs(x) < self.breakt:
+            return self.A*numpy.fabs(x)**self.gamma1
+        else:
+            return self.Atb*numpy.fabs(x)**self.gamma2
     
     def deriv(self,x,xp,key=None,covarValue=None):
         """
@@ -136,7 +143,7 @@ class covarFunc (covariance):
         out= covariance.isDomainFinite(self)
         out['gamma1']= [True,True]
         out['gamma2']= [True,True]
-        out['alpha']= [True,True]
+        out['breakt']= [True,False]
         return out
 
     def paramsDomain(self):
@@ -155,7 +162,7 @@ class covarFunc (covariance):
         out= covariance.paramsDomain(self)
         out['gamma1']= [0.,2.]
         out['gamma2']= [0.,2.]
-        out['alpha']= [0.,1.]
+        out['alpha']= [0.,0.]
         return out
 
     def create_method(self):
@@ -174,5 +181,4 @@ class covarFunc (covariance):
         out= covariance.create_method(self)
         out['gamma1']= 'whole'
         out['gamma2']= 'whole'
-        out['alpha']= 'whole'
         return out

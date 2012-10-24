@@ -1430,6 +1430,13 @@ class LCmodel():
                 if init_params is None:
                     params= {'gamma': nu.array([ 0.49500723]), 
                              'logA': nu.array([-3.36044037])}
+            elif type == 'brokenpowerlawSF':
+                from brokenpowerlawSF import covarFunc 
+                if init_params is None:
+                    params= {'gamma1': nu.array([ 0.8]),
+                             'gamma2': nu.array([ 0.4]),  
+                             'breakt': nu.array([ 0.2]),
+                             'logA': nu.array([-3.36044037])}
             elif type == 'scatter':
                 from scatterCovariance import covarFunc 
                 if init_params is None:
@@ -1636,6 +1643,8 @@ class TheoryLC():
                     from flexgp.powerlawSF import covarFunc 
                 except ImportError:
                     from gp.powerlawSF import covarFunc 
+            elif type == 'brokenpowerlawSF':
+                from brokenpowerlawSF import covarFunc 
             elif type == 'DRW':
                 from DRW import covarFunc
             elif type == 'scatter':
