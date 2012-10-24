@@ -131,6 +131,11 @@ def skewQSO(parser):
                 o.LCparams['gamma']= 1.
                 o.LCparams['logA']= o.LCparams['logA']\
                     +nu.log(0.05**v.LCparams['gamma']/0.05)
+                o.LCmean= 'zero' #bc we remove the mean when resampling wedge
+                #Set up LC with correct params
+                o.LC= LCmodel(trainSet=o._build_trainset(band),
+                              type=o.LCtype,mean=o.LCmean,
+                              init_params=o.LCparams)
             thisgaussskews[ii,:]= o.skew(taus,band)
         skews[key]= thisskew
         gaussskews[key]= thisgaussskews
