@@ -766,11 +766,12 @@ class VarQso():
                 times= nu.cumsum(dts)+start
                 #trim times
                 times= times[(times < nu.amax(xs))]
-                dataSF= covar_func(0.,0.,(cf))-covar_func(0.,0.05,(cf))
+                dataSF= 2.*(covar_func(0.,0.,(cf))-covar_func(0.,0.05,(cf)))
                 amp= nu.sqrt(dataSF/wedgerate/0.05) #V=SF at 
                 GPsample= nu.zeros(xs.shape)
                 for ii in range(len(times)):
                     GPsample+= wedge_func(xs,times[ii],amp,tau=wedgetau)
+                GPsample-= nu.mean(GPsample)
             elif noconstraints:
                 GPsample= eval_gp(xs,mean_func,covar_func,(mf),(cf),nGP=1,
                                   constraints=None,
