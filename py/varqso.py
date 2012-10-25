@@ -274,7 +274,7 @@ class VarQso():
         nwindows= len(start_mjds)
         xs, pm, pv= [], [], []
         for ii in range(nwindows):
-            thisxs= sc.arange(start_mjds[ii]-0.05,start_mjds[ii]+taus[-1]+0.05,taus[1]-taus[0])
+            thisxs= sc.arange(start_mjds[ii]-0.025,start_mjds[ii]+taus[-1]+0.025,taus[1]-taus[0])
             thispm, thispv= self.predict(thisxs,band)
             xs.append(thisxs)
             pm.append(thispm)
