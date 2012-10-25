@@ -774,8 +774,8 @@ class VarQso():
                 times= nu.cumsum(dts)+start
                 #trim times
                 times= times[(times < nu.amax(xs))]
-                dataSF= 2.*(covar_func(0.,0.,(cf))-covar_func(0.,0.05,(cf)))
-                amp= nu.sqrt(dataSF/wedgerate/0.05) #V=SF at 
+                dataSF= 2.*(covar_func(0.,0.,(cf))-covar_func(0.,0.025,(cf)))
+                amp= nu.sqrt(dataSF/wedgerate/0.025) #V=SF at 
                 if not self.flux:
                     amp*= -1.
                 GPsample= nu.zeros(xs.shape)
