@@ -130,7 +130,7 @@ def skewQSO(parser):
             if options.wedge:
                 o.LCparams['gamma']= 1.
                 o.LCparams['logA']= o.LCparams['logA']\
-                    +nu.log(0.05**v.LCparams['gamma']/0.05)
+                    +nu.log(0.025**v.LCparams['gamma']/0.025)
                 o.LCmean= 'zero' #bc we remove the mean when resampling wedge
                 #Set up LC with correct params
                 o.LC= LCmodel(trainSet=o._build_trainset(band),
