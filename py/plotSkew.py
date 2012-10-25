@@ -29,7 +29,7 @@ def plotSkew(parser):
                                 len(taus)))
     for ii, key in enumerate(keys):
         allskews[ii,:]= -skews[key] #go to regular definition
-        allgaussskews[ii,:]= -gaussskews[key]
+        allgaussskews[ii,:]= gaussskews[key] #Don't flip to get correct wedges
     #Statistic
     q= 0.99
     statistic= numpy.median
