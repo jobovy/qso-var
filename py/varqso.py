@@ -65,7 +65,7 @@ class VarQso():
                 self._init_oneband(file,b,medianize,self.flux)
         elif len(args) == 3: #(mjd,band),m,e_m
             for b in band:
-                self._init_arrays(args,b,medianize)
+                self._init_arrays(args,b,medianize,self.flux)
         try:
             minMJD= nu.array([nu.amin(self.mjd[b]) for b in band])
         except ValueError:
@@ -74,7 +74,7 @@ class VarQso():
         for b in band:
             self.mjd[b]= self.mjd[b]-minMJD
 
-    def _init_arrays(self,args,band,medianize):
+    def _init_arrays(self,args,band,medianize,flux):
         if ((not isinstance(args[0][0],(int,float)) and 
              len(args[0][0]) == 1) or \
                 isinstance(args[0][0],(int,float))):
@@ -89,6 +89,14 @@ class VarQso():
                                             if args[0][ii][1] == band])
         if medianize:
             self.medianize(band)
+        if flux:
+            from sdsspy.util import lups2nmgy
+            nmgy, ivar= lups2nmgy(self.m[band],err=self.err_m[band],
+                                  band=_BANDDICT[band])
+            self.m[band]= nmgy
+            self.err_m[band]= 1./nu.sqrt(ivar)
+            self.err_m[band]/= nu.mean(self.m[band]) #BOVY: not quite correct
+            self.m[band]/= nu.mean(self.m[band])
         self.meanErr[band]= nu.sqrt(nu.mean(self.err_m[band]**2.))
 
     def _init_oneband(self,file,band,medianize,flux):
