@@ -223,9 +223,12 @@ class VarQso():
         for ii in range(nepochs):
             ndata_in_duration[ii]= sc.sum(((self.mjd[band]-this_mjd[ii]) < duration)*((self.mjd[band]-this_mjd[ii]) >= 0.))
             season_duration[ii]= sc.amax(self.mjd[band][((self.mjd[band]-this_mjd[ii]) < duration)*((self.mjd[band]-this_mjd[ii]) >= 0.)])-this_mjd[ii]
+            if ndata_in_duration[ii] > minnepochs \
+                    and sc.any((sc.roll(this_mjd[ii:ii+ndata_in_duration[ii]-1],-1)-this_mjd[ii:ii+ndata_in_duration[ii]-1]) > 0.3):
+                ndata_in_duration[ii]= 0.
         #Find the local maxima of this array, bigger than minnepochs
         thisn, ii= ndata_in_duration[0], 0
-        max_indx= []
+        max_indx= [0]
         for ii in range(1,nepochs):
             if ndata_in_duration[ii] > thisn:
                 max_indx.append(ii)
