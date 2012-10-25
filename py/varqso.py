@@ -776,6 +776,8 @@ class VarQso():
                 times= times[(times < nu.amax(xs))]
                 dataSF= 2.*(covar_func(0.,0.,(cf))-covar_func(0.,0.05,(cf)))
                 amp= nu.sqrt(dataSF/wedgerate/0.05) #V=SF at 
+                if not self.flux:
+                    amp*= -1.
                 GPsample= nu.zeros(xs.shape)
                 for ii in range(len(times)):
                     GPsample+= wedge_func(xs,times[ii],amp,tau=wedgetau)
