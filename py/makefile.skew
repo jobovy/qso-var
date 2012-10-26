@@ -48,13 +48,13 @@ $(FIGDIR)/powerlawSF_constmean_g_skewdist.ps: plotSkewDist.py
 
 #RR Lyrae
 ../skew/rrlyrae_powerlawSF_constmean_u_skew.sav: ../skew/rrlyrae_powerlawSF_constmean_u_skew.sav_0
-	$(PYTHON) gatherSavefiles.py $@ -b u -t powerlawSF --mean=const -f ../fits/rrlyrae_powerlawSF_constmean_u.sav -n 100 --saveevery=5 --split=250
+	$(PYTHON) gatherSavefiles.py $@ -b u -t powerlawSF --mean=const -f ../fits/rrlyrae_powerlawSF_constmean_u.sav -n 100 --saveevery=5 --split=25
 ../skew/rrlyrae_powerlawSF_constmean_g_skew.sav: ../skew/rrlyrae_powerlawSF_constmean_g_skew.sav_0
-	$(PYTHON) gatherSavefiles.py $@ -b u -t powerlawSF --mean=const -f ../fits/rrlyrae_powerlawSF_constmean_g.sav -n 100 --saveevery=5 --split=250
+	$(PYTHON) gatherSavefiles.py $@ -b u -t powerlawSF --mean=const -f ../fits/rrlyrae_powerlawSF_constmean_g.sav -n 100 --saveevery=5 --split=25
 ../skew/rrlyrae_powerlawSF_constmean_r_skew.sav: ../skew/rrlyrae_powerlawSF_constmean_r_skew.sav_0
-	$(PYTHON) gatherSavefiles.py $@ -b u -t powerlawSF --mean=const -f ../fits/rrlyrae_powerlawSF_constmean_r.sav -n 100 --saveevery=5 --split=250
+	$(PYTHON) gatherSavefiles.py $@ -b u -t powerlawSF --mean=const -f ../fits/rrlyrae_powerlawSF_constmean_r.sav -n 100 --saveevery=5 --split=25
 ../skew/rrlyrae_powerlawSF_constmean_i_skew.sav: ../skew/rrlyrae_powerlawSF_constmean_i_skew.sav_0
-	$(PYTHON) gatherSavefiles.py $@ -b u -t powerlawSF --mean=const -f ../fits/rrlyrae_powerlawSF_constmean_i.sav -n 100 --saveevery=5 --split=250
+	$(PYTHON) gatherSavefiles.py $@ -b u -t powerlawSF --mean=const -f ../fits/rrlyrae_powerlawSF_constmean_i.sav -n 100 --saveevery=5 --split=25
 $(FIGDIR)/rrlyrae_powerlawSF_constmean_u_skew.ps: plotSkew.py ../skew/rrlyrae_powerlawSF_constmean_u_skew.sav
 	$(PYTHON) plotSkew.py ../skew/rrlyrae_powerlawSF_constmean_u_skew.sav -o $@
 $(FIGDIR)/rrlyrae_powerlawSF_constmean_g_skew.ps: plotSkew.py ../skew/rrlyrae_powerlawSF_constmean_g_skew.sav
