@@ -24,9 +24,13 @@ def plotSkewvs(parser):
         parser.print_help()
         return
     #Load additional catalogs
+    if not options.fitsfile is None:
+        fitsfile= open(options.fitsfile,'rb')
+        params= pickle.load(fitsfile)
+        fitsfile.close()
+    #Match
     s82qsos= _load_fits('../data/S82qsos.fits')
     shenqsos= _load_fits('../data/dr7_bh_May09_2011-woname.fits')
-    #Match
     s82qsoDict= {}
     shenqsoDict= {}
     shenindexing= numpy.arange(len(shenqsos),dtype='int')
@@ -78,6 +82,20 @@ def plotSkewvs(parser):
         nbins= 16
         quants= numpy.linspace(-30.,-22.,nbins)
         xrange=[-22.,-29.]
+    elif options.type.lower() == 'loga':
+        lookin = 'fits'
+        quant= 'logA'
+        xlabel=r'$\log A\ (\mathrm{variability\ at\ 1\ yr}$'
+        nbins= 16
+        quants= numpy.linspace(-7.,-1.,nbins)#2x
+        xrange=[-4.,0.]
+    elif options.type.lower() == 'gamma':
+        lookin = 'fits'
+        quant= 'gamma'
+        xlabel=r'$\gamma\ (\mathrm{power-law\ index}$'
+        nbins= 16
+        quants= numpy.linspace(0.,1.,nbins)#2x
+        xrange=[0.,.5]
     tauindx= 5
     keys= skews.keys()
     allskews= numpy.zeros(nbins-1)
@@ -92,6 +110,15 @@ def plotSkewvs(parser):
             if lookin == 's82':
                 if s82qsos[s82qsoDict[key]][quant] < quants[jj] \
                         or s82qsos[s82qsoDict[key]][quant] >= quants[jj+1]:
+                    continue
+            elif lookin == 'fits' and quant == 'logA':
+                thisA= params[key][quant]+params[key]['gamma']*numpy.log(1.+s82qsos[s82qsoDict[key]]['z'])
+                if thisA < quants[jj] \
+                        or thisA >= quants[jj+1]:
+                    continue
+            elif looking == 'fits':
+                if params[key][quant] < quants[jj] \
+                        or params[key][quant] >= quants[jj+1]:
                     continue
             else:
                 if shenqsoDict[key] == -1:
@@ -117,6 +144,8 @@ def plotSkewvs(parser):
         allgaussskews[:,jj]= quantile(mediangaussskew,q=q)
     quants+= (quants[1]-quants[0])/2.
     quants= quants[0:-1]
+    if options.type == 'logA' or options.type == 'gamma':
+        quants/= 2.
     #Plot
     bovy_plot.bovy_print(fig_width=7.)
     bovy_plot.bovy_plot(quants,allskews,'ko',
