@@ -88,11 +88,13 @@ def skewQSO(parser):
         sys.stdout.flush()
         sys.stdout.write('\rWorking on %s: %s\r' % (str(count),key))
         sys.stdout.flush()
-        v= VarQso(qso)
+        v= VarQso(qso,flux=options.flux)
         if v.nepochs(band) < 20:
             #print "This object does not have enough epochs ..."
             continue
         #Set best-fit
+        if options.flux:
+            params[key]['logA']+= 2.*nu.log(nu.log(10.)/2.5)
         v.LCparams= params[key]
         v.LC= LCmodel(trainSet=v._build_trainset(band),type=fittype,mean=mean,
                       init_params=params[key])
@@ -210,6 +212,9 @@ def get_options():
     parser.add_option("--wedgerate",dest='wedgerate',
                       default=0.1,type='float',
                       help="wedge rate (rest-frame; /days)")
+    parser.add_option("--flux",action="store_true", dest="flux",
+                      default=False,
+                      help="Use fluxes rather than magnitudes")
     return parser
 
 if __name__ == '__main__':
