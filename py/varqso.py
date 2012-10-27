@@ -278,7 +278,7 @@ class VarQso():
             thispm, thispv= self.predict(thisxs,band)
             xs.append(thisxs)
             pm.append(thispm)
-            pv.append(thispv)
+            pv.append(nu.diag(thispv))
         #Calculate skew
         return skew(xs,pm,pv,sc.arange(len(taus)))
                     
