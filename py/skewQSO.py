@@ -94,7 +94,9 @@ def skewQSO(parser):
             continue
         #Set best-fit
         if options.flux:
-            params[key]['logA']+= 2.*nu.log(nu.log(10.)/2.5)
+            params[key]['lagA']+= 2.*nu.log(nu.log(10.)/2.5)
+        if options.mean == 'const':
+            params[key]['m']= -nu.log(10.)/2.5*params[key]['m']
         v.LCparams= params[key]
         v.LC= LCmodel(trainSet=v._build_trainset(band),type=fittype,mean=mean,
                       init_params=params[key])
