@@ -96,7 +96,7 @@ def plotSkewvs(parser):
         nbins= 16
         quants= numpy.linspace(0.,1.,nbins)#2x
         xrange=[0.,.5]
-    tauindx= 5
+    tauindx= 15
     keys= skews.keys()
     allskews= numpy.zeros(nbins-1)
     allgaussskews= numpy.zeros((2,nbins-1))
@@ -116,7 +116,7 @@ def plotSkewvs(parser):
                 if thisA < quants[jj] \
                         or thisA >= quants[jj+1]:
                     continue
-            elif looking == 'fits':
+            elif lookin == 'fits':
                 if params[key][quant] < quants[jj] \
                         or params[key][quant] >= quants[jj+1]:
                     continue
