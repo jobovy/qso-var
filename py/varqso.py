@@ -246,7 +246,8 @@ class VarQso():
         cand= ndata_in_duration[max_indx]
         return cand_duration[(cand > minnepochs)]
 
-    def skew(self,taus,band,minnepochs=15,duration=150./365.25,**kwargs):
+    def skew(self,taus,band,minnepochs=15,duration=150./365.25,
+             s2=False,s3=False,**kwargs):
         """
         NAME:
            skew
@@ -256,6 +257,8 @@ class VarQso():
            taus - lags to determine the skew at (in yr)
            band - do the determination for this band
            minnepochs= minimum number of epochs in a season
+           s2= if True, return S2 rather than the skew
+           s3= if True, return S3 rather than the skew
            +self.fit kwargs (if fit needs to be done)
         OUTPUT:
            skew(taus)
@@ -279,8 +282,14 @@ class VarQso():
             xs.append(thisxs)
             pm.append(thispm)
             pv.append(nu.diag(thispv))
+#        return (xs,pm,pv)
         #Calculate skew
-        return skew(xs,pm,pv,sc.arange(len(taus)))
+        if s2:
+            return S2(xs,pm,pv,sc.arange(len(taus)))
+        elif s3:
+            return S3(xs,pm,pv,sc.arange(len(taus)))
+        else:
+            return skew(xs,pm,pv,sc.arange(len(taus)))
                     
     def plotSF(self,band='r',nGP=5,nx=201,plotMean=False,**kwargs):
         """
@@ -1944,9 +1953,9 @@ def S2(xs,pm,pv,taus,_retoutnorm=False):
             norm+= thisnorm
         return out/norm
     expanded_pm= sc.resize(pm,2*len(pm)+1)
-    expanded_pm[len(pm):2*len(pm)]= 0.
-    expanded_pv= sc.resize(pm,2*len(pm)+1)
-    expanded_pv[len(pm):2*len(pm)]= 10.**6.
+    expanded_pm[len(pm):2*len(pm)+1]= 0.
+    expanded_pv= sc.resize(pv,2*len(pm)+1)
+    expanded_pv[len(pm):2*len(pm)+1]= 10.**6.
     for ii in range(len(taus)):
         out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**2./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
         norm[ii]= sc.sum(1./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
@@ -1980,9 +1989,9 @@ def S3(xs,pm,pv,taus,_retoutnorm=False):
             norm+= thisnorm
         return out/norm
     expanded_pm= sc.resize(pm,2*len(pm)+1)
-    expanded_pm[len(pm):2*len(pm)]= 0.
-    expanded_pv= sc.resize(pm,2*len(pm)+1)
-    expanded_pv[len(pm):2*len(pm)]= 10.**6.
+    expanded_pm[len(pm):2*len(pm)+1]= 0.
+    expanded_pv= sc.resize(pv,2*len(pm)+1)
+    expanded_pv[len(pm):2*len(pm)+1]= 10.**6.
     for ii in range(len(taus)):
         out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**3./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
         norm[ii]= sc.sum(1./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
