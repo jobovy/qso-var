@@ -1955,12 +1955,11 @@ def S2(xs,pm,pv,taus,_retoutnorm=False):
     expanded_pm= sc.resize(pm,2*len(pm)+1)
     expanded_pm[len(pm):2*len(pm)+1]= 0.
     expanded_pv= sc.resize(pv,2*len(pm)+1)
+    expanded_pv[0:len(pm)]= 1.
     expanded_pv[len(pm):2*len(pm)+1]= 10.**6.
     for ii in range(len(taus)):
-#        out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**2./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
-#        norm[ii]= sc.sum(1./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
-        out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**2.)
-        norm[ii]= 1.
+        out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**2./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
+        norm[ii]= sc.sum(1./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
     if _retoutnorm:
         return (out,norm)
     else:
@@ -1993,12 +1992,11 @@ def S3(xs,pm,pv,taus,_retoutnorm=False):
     expanded_pm= sc.resize(pm,2*len(pm)+1)
     expanded_pm[len(pm):2*len(pm)+1]= 0.
     expanded_pv= sc.resize(pv,2*len(pm)+1)
+    expanded_pv[0:len(pm)]= 1.
     expanded_pv[len(pm):2*len(pm)+1]= 10.**6.
     for ii in range(len(taus)):
-#        out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**3./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
-#        norm[ii]= sc.sum(1./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
-        out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**3.)
-        norm[ii]= 1.
+        out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**3./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
+        norm[ii]= sc.sum(1./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
     if _retoutnorm:
         return (out, norm)
     else:
