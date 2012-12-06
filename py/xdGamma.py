@@ -45,7 +45,7 @@ def xdGamma(parser):
             print "Returning ..."
             return
         else:
-            nparams= 1
+            nparams= 1 # RITABAN 2 for gamma and A
     elif type == 'DRW':
         print "DRW not implemented yet ..."
         print "Returning ..."
@@ -70,17 +70,28 @@ def xdGamma(parser):
         if type == 'powerlawSF':
            #Stack as A,g,Ac,gc
             loggammas= []
+            #logAs= [] RITABAN
             for sample in samples[key]:
                 loggammas.append(numpy.log(sample['gamma'][0]))
+                #logAs.append(numpy.log(sample['logA'][0])) RITABAN
             loggammas= numpy.array(loggammas)
             ydata[ii,0]= numpy.mean(loggammas)
-            ycovar[ii,:,:]= numpy.var(loggammas)
+            ycovar[ii,0,0]= numpy.var(loggammas)
+            #logAs= numpy.array(logAs) RITABAN
+            #ydata[ii,1]= numpy.mean(logAs) RITABAN
+            #ycovar[ii,1,1]= numpy.var(logAs) RITABAN
             #Fit with g Gaussians
-            thisydata= numpy.reshape(loggammas,(len(loggammas),nparams))
-            thisycovar= numpy.zeros((len(loggammas),nparams))+numpy.var(loggammas)*10.**-4. #regularize
+            thisydata= numpy.reshape(loggammas-ydata[ii,:],#subtract mean to fit the error distribution
+                                     (len(loggammas),nparams))
+            #RITABAN : The previous line can be replaced by
+            #thisydata= ydata
+            #I think
+            thisycovar= numpy.zeros((len(loggammas),nparams))+numpy.var(loggammas)*10.**-4. #regularize RITABAN you can probably leave this
             thisxamp= numpy.ones(options.g)/options.g
             thisxcovar= numpy.ones((options.g,nparams,nparams))*numpy.var(loggammas)
             thisxmean= numpy.ones((options.g,nparams))*numpy.mean(loggammas)+numpy.std(loggammas)*numpy.random.normal(size=(options.g,nparams))/4.
+            #RITABAN : previous two lines should be replaced by something like
+            #starting at line 122 (xmean= numpy.zeros((options.k,nparams)))
             #print numpy.mean(loggammas), numpy.std(loggammas)
             extreme_deconvolution(thisydata,thisycovar,thisxamp,thisxmean,thisxcovar)
             ngamp[ii,:]= thisxamp
@@ -111,11 +122,13 @@ def xdGamma(parser):
     xmean= numpy.zeros((options.k,nparams))
     for kk in range(options.k):
         xmean[kk,:]= numpy.mean(ydata,axis=0)\
-            +numpy.random.normal()*numpy.std(ydata,axis=0)
+            +numpy.random.normal()*numpy.std(ydata,axis=0)/4.
     xcovar= numpy.zeros((options.k,nparams,nparams))
     for kk in range(options.k):
-        xcovar[kk,:,:]= numpy.cov(ydata.T)
-    ll= extreme_deconvolution(ydata,ycovar,xamp,xmean,xcovar)
+        xcovar[kk,:,:]= numpy.cov(ydata.T)*2.
+    ll= extreme_deconvolution(ydata,ycovar,xamp,xmean,xcovar,
+                              ng=True,ngamp=ngamp,
+                              ngmean=ngmean,ngcovar=ngcovar)
     if True:
         print xamp
         print xmean
