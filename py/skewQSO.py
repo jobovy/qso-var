@@ -56,7 +56,7 @@ def skewQSO(parser):
         for ii, qso in enumerate(qsos):
             key= os.path.basename(qso)
             splitDict[key]= splitarr[ii]
-        print "Running bin %i ..." % options.rah
+        print "Running bin %i ..." % (options.rah-1)
     savecount= 0
     count= len(skews)
     if not options.star and not options.rrlyrae:
@@ -72,7 +72,7 @@ def skewQSO(parser):
         if skews.has_key(key):
             continue
         if not options.split is None:
-            if splitDict[key] != options.rah:
+            if splitDict[key] != (options.rah-1):
                 continue
         else:
             try:
