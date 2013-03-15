@@ -108,6 +108,8 @@ def skewQSO(parser):
             thisskew= v.skew(taus,band)
         except RuntimeError:
             continue
+        if options.flux:
+            thisskew*= -1.
         thisgaussskews= nu.zeros((options.nsamples,len(taus)))
         for ii in range(options.nsamples):
             #First re-sample
@@ -141,6 +143,8 @@ def skewQSO(parser):
                               type=o.LCtype,mean=o.LCmean,
                               init_params=o.LCparams)
             thisgaussskews[ii,:]= o.skew(taus,band)
+            if options.flux:
+                thisgaussskews[ii,:]*= -1.
         skews[key]= thisskew
         gaussskews[key]= thisgaussskews
         savecount+= 1
