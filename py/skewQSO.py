@@ -19,7 +19,7 @@ def skewQSO(parser):
         savefile= open(savefilename,'rb')
         skews= pickle.load(savefile)
         gaussskews= pickle.load(savefile)
-        type= pickle.load(savefile)
+        fittype= pickle.load(savefile)
         band= pickle.load(savefile)
         mean= pickle.load(savefile)
         taus= pickle.load(savefile)      
@@ -27,10 +27,10 @@ def skewQSO(parser):
     else:
         skews= {}
         gaussskews= {}
-        type= options.type
+        fittype= options.type
         mean= options.mean
         band= options.band
-        taus= nu.arange(options.dtau,options.taumax,options.dtau)/365.
+        taus= nu.arange(options.dtau,options.taumax,options.dtau)/365.25
     if os.path.exists(options.fitsfile):
         fitsfile= open(options.fitsfile,'rb')
         params= pickle.load(fitsfile)
@@ -59,8 +59,8 @@ def skewQSO(parser):
         print "Running bin %i ..." % options.rah
     savecount= 0
     count= len(skews)
-    #Read master file for redshifts
-    if not options.star:
+    if not options.star and not options.rrlyrae:
+        #Read master file for redshifts
         dataqsos= open_qsos()
         qsoDict= {}
         ii=0
@@ -88,29 +88,44 @@ def skewQSO(parser):
         sys.stdout.flush()
         sys.stdout.write('\rWorking on %s: %s\r' % (str(count),key))
         sys.stdout.flush()
-        v= VarQso(qso)
+        v= VarQso(qso,flux=options.flux)
         if v.nepochs(band) < 20:
             #print "This object does not have enough epochs ..."
             continue
         #Set best-fit
+        if options.flux:
+            params[key]['logA']+= 2.*nu.log(nu.log(10.)/2.5)
+        if options.mean == 'const':
+            params[key]['m']= -nu.log(10.)/2.5*params[key]['m']
         v.LCparams= params[key]
-        v.LC= LCmodel(trainSet=v._build_trainset(band),type=type,mean=mean)
-        v.LCtype= type
+        v.LC= LCmodel(trainSet=v._build_trainset(band),type=fittype,mean=mean,
+                      init_params=params[key])
+        v.LCtype= fittype
         v.LCmean= mean
         v.fitband= band
         #Now compute skew and Gaussian samples
-        thisskew= v.skew(taus,band)
+        try:
+            thisskew= v.skew(taus,band)
+        except RuntimeError:
+            continue
         thisgaussskews= nu.zeros((options.nsamples,len(taus)))
         for ii in range(options.nsamples):
             #First re-sample
-            if options.star:
+            if options.star or options.rrlyrae:
                 redshift= 0.
             else:
                 redshift= dataqsos[qsoDict[key]].z
-            o= v.resample(v.mjd[band],band=band,noconstraints=True,
-                          wedge=options.wedge,
-                          wedgerate=options.wedgerate*365./(1.+redshift),
-                          wedgetau=(1.+redshift)) #1yr
+            try:
+                o= v.resample(v.mjd[band],band=band,noconstraints=True,
+                              wedge=options.wedge,
+                              wedgerate=options.wedgerate*365.25/(1.+redshift),
+                              wedgetau=(1.+redshift)) #1yr
+            except nu.linalg.linalg.LinAlgError:
+                if params[key]['gamma'] > 1.5 \
+                        or params[key]['logA'] < -10.:
+                    continue #re-sampling fails because of bad gamma/logA
+                else:
+                    print key, params[key]
             o.LCparams= v.LCparams
             o.LC= v.LC
             o.fitband= v.fitband
@@ -119,7 +134,12 @@ def skewQSO(parser):
             if options.wedge:
                 o.LCparams['gamma']= 1.
                 o.LCparams['logA']= o.LCparams['logA']\
-                    +nu.log(0.05**v.LCparams['gamma']/0.05)
+                    +nu.log(0.025**v.LCparams['gamma']/0.025)
+                o.LCmean= 'zero' #bc we remove the mean when resampling wedge
+                #Set up LC with correct params
+                o.LC= LCmodel(trainSet=o._build_trainset(band),
+                              type=o.LCtype,mean=o.LCmean,
+                              init_params=o.LCparams)
             thisgaussskews[ii,:]= o.skew(taus,band)
         skews[key]= thisskew
         gaussskews[key]= thisgaussskews
@@ -129,12 +149,12 @@ def skewQSO(parser):
             sys.stdout.flush()
             sys.stdout.write('\rSaving ...\r')
             sys.stdout.flush()
-            save_pickles(savefilename,skews,gaussskews,type,band,mean,taus)
+            save_pickles(savefilename,skews,gaussskews,fittype,band,mean,taus)
             savecount= 0
         count+= 1
     sys.stdout.write('\r'+_ERASESTR+'\r')
     sys.stdout.flush()
-    save_pickles(savefilename,skews,gaussskews,type,band,mean,taus)
+    save_pickles(savefilename,skews,gaussskews,fittype,band,mean,taus)
     print "All done"
 
 def get_options():
@@ -183,10 +203,10 @@ def get_options():
                       default=None,
                       help="Input file if --resampled")
     parser.add_option("--dtau",dest='dtau',
-                      default=3,type='float',
+                      default=1,type='float',
                       help="lag spacing")
     parser.add_option("--taumax",dest='taumax',
-                      default=150.,type='float',
+                      default=40.,type='float',
                       help="lag spacing")
     parser.add_option("--wedge",action="store_true", dest="wedge",
                       default=False,
@@ -194,6 +214,9 @@ def get_options():
     parser.add_option("--wedgerate",dest='wedgerate',
                       default=0.1,type='float',
                       help="wedge rate (rest-frame; /days)")
+    parser.add_option("--flux",action="store_true", dest="flux",
+                      default=False,
+                      help="Use fluxes rather than magnitudes")
     return parser
 
 if __name__ == '__main__':

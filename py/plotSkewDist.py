@@ -29,23 +29,12 @@ def plotSkew(parser):
                                 len(taus)))
     for ii, key in enumerate(keys):
         allskews[ii,:]= -skews[key] #go to regular definition
-        allgaussskews[ii,:]= gaussskews[key] #Don't flip to get correct wedges
+        allgaussskews[ii,:]= -gaussskews[key]
     #Statistic
     q= 0.99
     statistic= numpy.median
     if not options.indx is None:
-        sigma= quantile(allgaussskews[options.indx,:,:],q=q)
-        bovy_plot.bovy_print(fig_width=7.)
-        bovy_plot.bovy_plot(taus*365.25,allskews[options.indx,:],'k-',
-                            xlabel=r'$\mathrm{lag}\ \tau\ [\mathrm{days}]$',
-                            ylabel=r'$\mathrm{skew}(\tau)$',
-                            zorder=5,
-                            yrange=[-1.,1.])
-        pyplot.fill_between(taus*365.25,sigma[0,:],sigma[1,:],color='0.75',zorder=0)
-        bovy_plot.bovy_plot(taus*365.25,statistic(allgaussskews[options.indx,:,:],
-                                                   axis=0),'-',
-                            overplot=True,color='0.5')
-        bovy_plot.bovy_end_print(options.plotfilename)
+        print "indx option not allowed"
         return None
     indx= numpy.all(numpy.isnan(allskews),axis=1)
     allskews= allskews[True-indx,:]
@@ -56,15 +45,16 @@ def plotSkew(parser):
     #Determine 1-sigma
     sigma= quantile(mediangaussskew,q=q)
     #Plot
+    tauindx= 5
+    print "Showing tau %f" % (taus[tauindx]*365.25)
     bovy_plot.bovy_print(fig_width=7.)
-    bovy_plot.bovy_plot(taus*365.25,medianskew,'k-',
-                        xlabel=r'$\mathrm{lag}\ \tau\ [\mathrm{days}]$',
-                        ylabel=r'$\mathrm{skew}(\tau)$',
-                        zorder=5,
-                        yrange=[-1.,1.])
-    pyplot.fill_between(taus*365.25,sigma[0,:],sigma[1,:],color='0.75',zorder=0)
-    bovy_plot.bovy_plot(taus*365.25,statistic(mediangaussskew,axis=0),'-',
-                        overplot=True,color='0.5')
+    bovy_plot.bovy_hist(allskews[:,tauindx],bins=31,
+                        color='k',normed=True,histtype='step',
+                        xlabel=r'$\mathrm{skew}(\tau = %i\ \mathrm{days})$' % (int(taus[tauindx]*365.25)))
+    bovy_plot.bovy_plot([numpy.median(allskews[:,tauindx]),numpy.median(allskews[:,tauindx])],
+                        [0.,10.],'k-',overplot=True)
+    bovy_plot.bovy_plot([numpy.mean(allskews[:,tauindx]),numpy.mean(allskews[:,tauindx])],
+                        [0.,10.],'k--',overplot=True)
     bovy_plot.bovy_end_print(options.plotfilename)
     return None
 

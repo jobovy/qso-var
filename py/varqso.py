@@ -65,7 +65,7 @@ class VarQso():
                 self._init_oneband(file,b,medianize,self.flux)
         elif len(args) == 3: #(mjd,band),m,e_m
             for b in band:
-                self._init_arrays(args,b,medianize)
+                self._init_arrays(args,b,medianize,self.flux)
         try:
             minMJD= nu.array([nu.amin(self.mjd[b]) for b in band])
         except ValueError:
@@ -74,7 +74,7 @@ class VarQso():
         for b in band:
             self.mjd[b]= self.mjd[b]-minMJD
 
-    def _init_arrays(self,args,band,medianize):
+    def _init_arrays(self,args,band,medianize,flux):
         if ((not isinstance(args[0][0],(int,float)) and 
              len(args[0][0]) == 1) or \
                 isinstance(args[0][0],(int,float))):
@@ -89,6 +89,14 @@ class VarQso():
                                             if args[0][ii][1] == band])
         if medianize:
             self.medianize(band)
+        if flux:
+            from sdsspy.util import lups2nmgy
+            nmgy, ivar= lups2nmgy(self.m[band],err=self.err_m[band],
+                                  band=_BANDDICT[band])
+            self.m[band]= nmgy
+            self.err_m[band]= 1./nu.sqrt(ivar)
+            self.err_m[band]/= nu.mean(self.m[band]) #BOVY: not quite correct
+            self.m[band]/= nu.mean(self.m[band])
         self.meanErr[band]= nu.sqrt(nu.mean(self.err_m[band]**2.))
 
     def _init_oneband(self,file,band,medianize,flux):
@@ -185,9 +193,13 @@ class VarQso():
         this_mjd= sc.sort(self.mjd[band])
         for ii in range(nepochs):
             ndata_in_duration[ii]= sc.sum(((self.mjd[band]-this_mjd[ii]) < duration)*((self.mjd[band]-this_mjd[ii]) >= 0.))
+            #If there is a gap in the window, exclude it
+            if ndata_in_duration[ii] > minnepochs \
+                    and sc.any((sc.roll(this_mjd[ii:ii+ndata_in_duration[ii]-1],-1)-this_mjd[ii:ii+ndata_in_duration[ii]-1]) > 0.3):
+                ndata_in_duration[ii]= 0.
         #Find the local maxima of this array, bigger than minnepochs
         thisn, ii= ndata_in_duration[0], 0
-        max_indx= []
+        max_indx= [0]
         for ii in range(1,nepochs):
             if ndata_in_duration[ii] > thisn:
                 max_indx.append(ii)
@@ -196,7 +208,46 @@ class VarQso():
         cand= ndata_in_duration[max_indx]
         return cand_mjd[(cand > minnepochs)]
 
-    def skew(self,taus,band,minnepochs=15,**kwargs):
+    def determine_seasons_duration(self,duration,band,minnepochs=10):
+        """
+        NAME:
+           determine_seasons_duration
+        PURPOSE:
+           determine the observing seasons' duration
+        INPUT:
+           duration - duration of the season in yr (upper limit)
+           band - do the determination for this band
+           minnepochs - minimum number of epochs in a season
+        OUTPUT:
+           array of MJDs at the start of a season
+        HISTORY:
+           2012-10-11 - Written - Bovy (IAS)
+        """
+        #For each data point, see how many data-points are within duration of it, and determine the duration
+        nepochs= self.nepochs(band)
+        ndata_in_duration= sc.zeros(nepochs,dtype='int')
+        season_duration= sc.zeros(nepochs)
+        this_mjd= sc.sort(self.mjd[band])
+        for ii in range(nepochs):
+            ndata_in_duration[ii]= sc.sum(((self.mjd[band]-this_mjd[ii]) < duration)*((self.mjd[band]-this_mjd[ii]) >= 0.))
+            season_duration[ii]= sc.amax(self.mjd[band][((self.mjd[band]-this_mjd[ii]) < duration)*((self.mjd[band]-this_mjd[ii]) >= 0.)])-this_mjd[ii]
+            if ndata_in_duration[ii] > minnepochs \
+                    and sc.any((sc.roll(this_mjd[ii:ii+ndata_in_duration[ii]-1],-1)-this_mjd[ii:ii+ndata_in_duration[ii]-1]) > 0.3):
+                ndata_in_duration[ii]= 0.
+        #Find the local maxima of this array, bigger than minnepochs
+        thisn, ii= ndata_in_duration[0], 0
+        max_indx= [0]
+        for ii in range(1,nepochs):
+            if ndata_in_duration[ii] > thisn:
+                max_indx.append(ii)
+            thisn= ndata_in_duration[ii]
+        cand_mjd= this_mjd[max_indx]
+        cand_duration= season_duration[max_indx]
+        cand= ndata_in_duration[max_indx]
+        return cand_duration[(cand > minnepochs)]
+
+    def skew(self,taus,band,minnepochs=15,duration=150./365.25,
+             s2=False,s3=False,**kwargs):
         """
         NAME:
            skew
@@ -206,6 +257,8 @@ class VarQso():
            taus - lags to determine the skew at (in yr)
            band - do the determination for this band
            minnepochs= minimum number of epochs in a season
+           s2= if True, return S2 rather than the skew
+           s3= if True, return S3 rather than the skew
            +self.fit kwargs (if fit needs to be done)
         OUTPUT:
            skew(taus)
@@ -213,8 +266,10 @@ class VarQso():
            2012-10-11 - Written - Bovy (IAS)
         """
         #First determine the seasons
-        start_mjds= self.determine_seasons(taus[-1],band,
+        start_mjds= self.determine_seasons(duration,band,
                                            minnepochs=minnepochs)
+        if len(start_mjds) == 0:
+            raise RuntimeError("Object does not have a season with a sufficient number of epochs ...")
         #Then interpolate the seasonal lightcurve using Wiener filter
         hasfit= hasattr(self,'LCparams')
         if not hasfit:
@@ -222,13 +277,19 @@ class VarQso():
         nwindows= len(start_mjds)
         xs, pm, pv= [], [], []
         for ii in range(nwindows):
-            thisxs= sc.arange(start_mjds[ii]-0.05,start_mjds[ii]+taus[-1]+0.05,taus[1]-taus[0])
+            thisxs= sc.arange(start_mjds[ii]-0.025,start_mjds[ii]+taus[-1]+0.025,taus[1]-taus[0])
             thispm, thispv= self.predict(thisxs,band)
             xs.append(thisxs)
             pm.append(thispm)
-            pv.append(thispv)
+            pv.append(nu.diag(thispv))
+#        return (xs,pm,pv)
         #Calculate skew
-        return skew(xs,pm,pv,sc.arange(len(taus)))
+        if s2:
+            return S2(xs,pm,pv,sc.arange(len(taus)))
+        elif s3:
+            return S3(xs,pm,pv,sc.arange(len(taus)))
+        else:
+            return skew(xs,pm,pv,sc.arange(len(taus)))
                     
     def plotSF(self,band='r',nGP=5,nx=201,plotMean=False,**kwargs):
         """
@@ -654,7 +715,7 @@ class VarQso():
         return out
 
     def resample(self,xs,band='ugriz',errors=True,noconstraints=False,
-                 wedge=False,wedgerate=0.25*365.,wedgetau=200./365,
+                 wedge=False,wedgerate=0.25*365.25,wedgetau=200./365.25,
                  addlagged=False,lag=None,laggedxs=None):
         """
         NAME:
@@ -709,6 +770,7 @@ class VarQso():
         #Now get ready for drawing
         cf= self.LC.cf
         mf= self.LC.mf
+        tiny_cholesky=10.**-4.*covar_func(0.,0.,(cf))
         mean={}
         for b in band:
             mean[b]= nu.mean(self.m[b])
@@ -721,19 +783,22 @@ class VarQso():
                 times= nu.cumsum(dts)+start
                 #trim times
                 times= times[(times < nu.amax(xs))]
-                dataSF= covar_func(0.,0.,(cf))-covar_func(0.,0.05,(cf))
-                amp= nu.sqrt(dataSF/wedgerate/0.05) #V=SF at 
+                dataSF= 2.*(covar_func(0.,0.,(cf))-covar_func(0.,0.025,(cf)))
+                amp= nu.sqrt(dataSF/wedgerate/0.025) #V=SF at 
+                if not self.flux:
+                    amp*= -1.
                 GPsample= nu.zeros(xs.shape)
                 for ii in range(len(times)):
                     GPsample+= wedge_func(xs,times[ii],amp,tau=wedgetau)
+                GPsample-= nu.mean(GPsample)
             elif noconstraints:
                 GPsample= eval_gp(xs,mean_func,covar_func,(mf),(cf),nGP=1,
                                   constraints=None,
-                                  tiny_cholesky=0.000001).reshape(len(xs))
+                                  tiny_cholesky=tiny_cholesky).reshape(len(xs))
             else:
                 GPsample= eval_gp(xs,mean_func,covar_func,(mf),(cf),nGP=1,
                                   constraints=self._build_trainset(self.fitband),
-                                  tiny_cholesky=0.000001).reshape(len(xs))
+                                  tiny_cholesky=tiny_cholesky).reshape(len(xs))
         except nu.linalg.linalg.LinAlgError:
             raise
             #ACTUALLY THIS NEVER HAPPENS AND THE CODE BLOCK BELOW IS UNTESTED
@@ -877,7 +942,8 @@ class VarQso():
                 raise IOError("'band' must be set")
             trainSet= self._build_trainset(band)
             self.fitband= band
-            self.LC= LCmodel(trainSet=trainSet,type=type,mean=mean)
+            self.LC= LCmodel(trainSet=trainSet,type=type,mean=mean,
+                             init_params=self.LCparams)
             self.LCparams= self.LC.fit(fix=fix)
             self.LCtype= type
             self.LCmean= mean
@@ -1221,7 +1287,8 @@ class VarQso():
                 raise IOError("'band' must be set")
             trainSet= self._build_trainset(band)
             self.fitband= band
-            self.LC= LCmodel(trainSet=trainSet,type=type,mean=mean)
+            self.LC= LCmodel(trainSet=trainSet,type=type,mean=mean,
+                             init_params=self.LCparams)
             self.LCparams= self.LC.fit(fix=fix)
             self.LCtype= type
             self.LCmean= mean
@@ -1390,6 +1457,13 @@ class LCmodel():
                 if init_params is None:
                     params= {'gamma': nu.array([ 0.49500723]), 
                              'logA': nu.array([-3.36044037])}
+            elif type == 'brokenpowerlawSF':
+                from brokenpowerlawSF import covarFunc 
+                if init_params is None:
+                    params= {'gamma1': nu.array([ 0.8]),
+                             'gamma2': nu.array([ 0.4]),  
+                             'breakt': nu.array([ 0.2]),
+                             'logA': nu.array([-3.36044037])}
             elif type == 'scatter':
                 from scatterCovariance import covarFunc 
                 if init_params is None:
@@ -1410,7 +1484,7 @@ class LCmodel():
                     from gp.periodicOU_ARD import covarFunc  
                 if init_params is None:
                     params= {'logl': nu.array([-1.37742591]), 
-                             'logP':nu.array([nu.log(1./365.)]),
+                             'logP':nu.array([nu.log(1./365.25)]),
                              'loga2': nu.array([-3.47341754])}
             if mean == 'zero':
                 try:
@@ -1525,8 +1599,9 @@ class LCmodel():
                                   'sz':nu.array([1.])}
         if not init_params is None:
             params= init_params
+            mean_params= init_params
         self.cf= covarFunc(**params)
-        self.mf= meanFunc(**params)
+        self.mf= meanFunc(**mean_params)
 
     def fit(self,fix=None):
         """
@@ -1595,6 +1670,8 @@ class TheoryLC():
                     from flexgp.powerlawSF import covarFunc 
                 except ImportError:
                     from gp.powerlawSF import covarFunc 
+            elif type == 'brokenpowerlawSF':
+                from brokenpowerlawSF import covarFunc 
             elif type == 'DRW':
                 from DRW import covarFunc
             elif type == 'scatter':
@@ -1876,17 +1953,18 @@ def S2(xs,pm,pv,taus,_retoutnorm=False):
             norm+= thisnorm
         return out/norm
     expanded_pm= sc.resize(pm,2*len(pm)+1)
-    expanded_pm[len(pm):2*len(pm)]= 0.
-    expanded_pv= sc.resize(pm,2*len(pm)+1)
-    expanded_pv[len(pm):2*len(pm)]= 10.**6.
+    expanded_pm[len(pm):2*len(pm)+1]= 0.
+    expanded_pv= sc.resize(pv,2*len(pm)+1)
+    expanded_pv[0:len(pm)]= 1.
+    expanded_pv[len(pm):2*len(pm)+1]= 10.**6.
     for ii in range(len(taus)):
         out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**2./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
         norm[ii]= sc.sum(1./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
     if _retoutnorm:
         return (out,norm)
     else:
-        return out
-
+        return out/norm
+ 
 def S3(xs,pm,pv,taus,_retoutnorm=False):
     """
     NAME:
@@ -1912,9 +1990,10 @@ def S3(xs,pm,pv,taus,_retoutnorm=False):
             norm+= thisnorm
         return out/norm
     expanded_pm= sc.resize(pm,2*len(pm)+1)
-    expanded_pm[len(pm):2*len(pm)]= 0.
-    expanded_pv= sc.resize(pm,2*len(pm)+1)
-    expanded_pv[len(pm):2*len(pm)]= 10.**6.
+    expanded_pm[len(pm):2*len(pm)+1]= 0.
+    expanded_pv= sc.resize(pv,2*len(pm)+1)
+    expanded_pv[0:len(pm)]= 1.
+    expanded_pv[len(pm):2*len(pm)+1]= 10.**6.
     for ii in range(len(taus)):
         out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**3./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
         norm[ii]= sc.sum(1./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
@@ -2010,7 +2089,7 @@ def _as_recarray(recarray):
         newrecarray[field.lower()] = recarray.field(field)
     return newrecarray
 
-def wedge_func(t,tstart,amp,tau=200./365.):
+def wedge_func(t,tstart,amp,tau=200./365.25):
     tend= tstart+tau
     if isinstance(t,nu.ndarray):
         out= nu.empty(t.shape)

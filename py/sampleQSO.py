@@ -94,7 +94,8 @@ def sampleQSO(parser):
             continue
         #Set best-fit
         v.LCparams= params[key]
-        v.LC= LCmodel(trainSet=v._build_trainset(band),type=type,mean=mean)
+        v.LC= LCmodel(trainSet=v._build_trainset(band),type=type,mean=mean,
+                      init_params=params[key])
         v.LCtype= type
         v.LCmean= mean
         v.fitband= band

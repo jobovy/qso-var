@@ -30,6 +30,9 @@ cmd= [os.getenv('PYTHON'),
       '--taumax=%f' % options.taumax,
       '--wedgerate=%f' % options.wedgerate]
 if options.wedge: cmd.append('--wedge')
+if options.flux: cmd.append('--flux')
+if options.star: cmd.append('--star')
+if options.rrlyrae: cmd.append('--rrlyrae')
 if not options.split is None:
     cmd.append('--split=%i' % options.split)
 #Now run
