@@ -89,7 +89,6 @@ def classQSO(parser):
     ras= numpy.zeros(ndata)
     decs= numpy.zeros(ndata)
     for ii, key in enumerate(samples.keys()):
-        if ii > 20: break
         sys.stdout.write('\r'+_ERASESTR+'\r')
         sys.stdout.flush()
         sys.stdout.write('\rWorking on %i / %i\r' % (ii+1,ndata))
