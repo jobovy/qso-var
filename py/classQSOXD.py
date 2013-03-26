@@ -72,6 +72,20 @@ def classQSO(parser):
         print "Input file does not exist ..."
         print "Returning ..."
         return
+    #Restore samples
+    savefilename= args[1]
+    print "Reading best fits ..."
+    if os.path.exists(savefilename):
+        savefile= open(savefilename,'rb')
+        params= pickle.load(savefile)
+        type= pickle.load(savefile)
+        band= pickle.load(savefile)
+        mean= pickle.load(savefile)
+        savefile.close()
+    else:
+        print "Input file does not exist ..."
+        print "Returning ..."
+        return
     #Load the overall data, to later match back to ra and dec
     if 'nuvx' in args[0].lower():
         sources= fitsio.read('../data/nUVX_woname.fit')
@@ -88,11 +102,15 @@ def classQSO(parser):
     logpxagamma_rrlyrae= numpy.zeros(ndata)
     ras= numpy.zeros(ndata)
     decs= numpy.zeros(ndata)
+    outgammas= numpy.zeros(ndata)
+    outlogAs= numpy.zeros(ndata)
     for ii, key in enumerate(samples.keys()):
         sys.stdout.write('\r'+_ERASESTR+'\r')
         sys.stdout.flush()
         sys.stdout.write('\rWorking on %i / %i\r' % (ii+1,ndata))
         sys.stdout.flush()
+        outgammas[ii]= params[key]['gamma'][0]
+        outlogAs[ii]= params[key]['logA'][0]/2.
         if type == 'powerlawSF':
            #Stack as A,g,Ac,gc
             loggammas= []
@@ -139,6 +157,7 @@ def classQSO(parser):
               logpxagamma_star,
               logpxagamma_rrlyrae,
               ras,decs,
+              outloggammas,outlogAs,
               options.outfile)
     return None
 
@@ -162,14 +181,14 @@ def _eval_sumgaussians(x,xamp,xmean,xcovar):
         out[ii]= maxentropy.logsumexp(loglike)
     return out
 
-def saveClass(q,s,r,ra,dec,filename):
+def saveClass(q,s,r,ra,dec,g,a,filename):
     """
     NAME:
        saveClass
     PURPOSE:
        save the classifications
     INPUT:
-       q, s, r, ra, dec
+       q, s, r, ra, dec, g, a
        filename - name of the file that the output will be saved to
     OUTPUT:
        (none)
@@ -181,6 +200,8 @@ def saveClass(q,s,r,ra,dec,filename):
     out= numpy.recarray((ndata,),
                         dtype=[('ra','f8'),
                                ('dec','f8'),
+                               ('gamma','f8'),
+                               ('loga','f8'),
                                ('logpx_qso','f8'),
                                ('logpx_star','f8'),
                                ('logpx_rrlyrae','f8')])
@@ -189,6 +210,8 @@ def saveClass(q,s,r,ra,dec,filename):
     out.logpx_rrlyrae= r
     out.ra= ra
     out.dec= dec
+    out.gamma= g
+    out.loga= a
     #Now write to fits
     fitsio.write(filename,out,clobber=True)
     return None
