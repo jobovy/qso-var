@@ -906,7 +906,7 @@ class VarQso():
         self.LCtype= type
         self.LCmean= mean
         if loglike:
-            (params,packing)= pack_params(self.LC.cf,self.LC.mf)
+            (params,packing)= pack_params(self.LC.cf,self.LC.mf,None)
             covarFuncName= inspect.getmodule(self.LC.cf).__name__
             thisCovarClass= __import__(covarFuncName)
             loglike= marginalLikelihood(params,trainSet,packing,
@@ -1955,7 +1955,7 @@ def S2(xs,pm,pv,taus,_retoutnorm=False):
     expanded_pm= sc.resize(pm,2*len(pm)+1)
     expanded_pm[len(pm):2*len(pm)+1]= 0.
     expanded_pv= sc.resize(pv,2*len(pm)+1)
-    expanded_pv[0:len(pm)]= 1.
+    #expanded_pv[0:len(pm)]= 1.
     expanded_pv[len(pm):2*len(pm)+1]= 10.**6.
     for ii in range(len(taus)):
         out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**2./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
@@ -1992,7 +1992,7 @@ def S3(xs,pm,pv,taus,_retoutnorm=False):
     expanded_pm= sc.resize(pm,2*len(pm)+1)
     expanded_pm[len(pm):2*len(pm)+1]= 0.
     expanded_pv= sc.resize(pv,2*len(pm)+1)
-    expanded_pv[0:len(pm)]= 1.
+    #expanded_pv[0:len(pm)]= 1.
     expanded_pv[len(pm):2*len(pm)+1]= 10.**6.
     for ii in range(len(taus)):
         out[ii]= sc.sum((sc.roll(expanded_pm,taus[ii])-expanded_pm)**3./(expanded_pv+sc.roll(expanded_pv,taus[ii])))
