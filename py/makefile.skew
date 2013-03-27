@@ -24,7 +24,7 @@ all: $(FIGDIR)/powerlawSF_constmean_u_skew.ps \
 
 
 #Gaussian
-../skew/powerlawSF_constmean_u_skew.sav: ../skew/powerlawSF_constmean_u_skew.sav_0
+../skew-wpv/powerlawSF_constmean_u_skew.sav: ../skew/powerlawSF_constmean_u_skew_1.sav
 	$(PYTHON) gatherSavefiles.py $@ -b u -t powerlawSF --mean=const -f ../fits/powerlawSF_constmean_u.sav -n 100 --saveevery=5 --split=250
 ../skew/powerlawSF_constmean_g_skew.sav: ../skew/powerlawSF_constmean_g_skew.sav_0
 	$(PYTHON) gatherSavefiles.py $@ -b u -t powerlawSF --mean=const -f ../fits/powerlawSF_constmean_g.sav -n 100 --saveevery=5 --split=250
@@ -33,7 +33,7 @@ all: $(FIGDIR)/powerlawSF_constmean_u_skew.ps \
 ../skew/powerlawSF_constmean_i_skew.sav: ../skew/powerlawSF_constmean_i_skew.sav_0
 	$(PYTHON) gatherSavefiles.py $@ -b u -t powerlawSF --mean=const -f ../fits/powerlawSF_constmean_i.sav -n 100 --saveevery=5 --split=250
 $(FIGDIR)/powerlawSF_constmean_u_skew.ps: plotSkew.py ../skew/powerlawSF_constmean_u_skew.sav
-	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_u_skew.sav -o $@
+	$(PYTHON) plotSkew.py ../skew-wpv/powerlawSF_constmean_u_skew.sav -o $@
 $(FIGDIR)/powerlawSF_constmean_g_skew.ps: plotSkew.py ../skew/powerlawSF_constmean_g_skew.sav
 	$(PYTHON) plotSkew.py ../skew/powerlawSF_constmean_g_skew.sav -o $@
 $(FIGDIR)/powerlawSF_constmean_r_skew.ps: plotSkew.py ../skew/powerlawSF_constmean_r_skew.sav
