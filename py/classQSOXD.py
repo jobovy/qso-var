@@ -115,9 +115,13 @@ def classQSO(parser):
            #Stack as A,g,Ac,gc
             loggammas= []
             logAs= []
-            for sample in samples[key]:
-                loggammas.append(numpy.log(sample['gamma'][0]))
-                logAs.append(sample['logA'][0]) #RITABAN
+            try:
+                for sample in samples[key]:
+                    loggammas.append(numpy.log(sample['gamma'][0]))
+                    logAs.append(sample['logA'][0]) #RITABAN
+            except TypeError:
+                loggammas.append(numpy.log(samples[key]['gamma'][0]))
+                logAs.append(samples[key]['logA'][0])
             loggammas= numpy.array(loggammas)
             logAs= numpy.array(logAs)
             weights= -loggammas #the 1/gamma to get a flat prior in log gamma, but expressed as log(1/gamma)
@@ -157,7 +161,7 @@ def classQSO(parser):
               logpxagamma_star,
               logpxagamma_rrlyrae,
               ras,decs,
-              outloggammas,outlogAs,
+              outgammas,outlogAs,
               options.outfile)
     return None
 
