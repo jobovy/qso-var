@@ -89,7 +89,14 @@ def sampleQSO(parser):
             v= qso[1]
         else:
             v= VarQso(qso)
-        if v.nepochs(band) < 20:
+        if options.lownepochs:
+            if v.nepochs(band) >= 20:
+                print "This object has too many epochs ..."
+                continue
+            elif v.nepochs(band) < 3:
+                print "This object has < 3 epochs ..."
+                continue
+        elif not options.lownepochs and v.nepochs(band) < 20:
             print "This object does not have enough epochs ..."
             continue
         #Set best-fit
@@ -186,6 +193,9 @@ def get_options():
     parser.add_option("--markovpy",action="store_true", dest="markovpy",
                       default=False,
                       help="Use markovpy sampling")
+    parser.add_option("--lownepochs",action="store_true", dest="lownepochs",
+                      default=False,
+                      help="Fit sources with a small number of epochs rather than a large number of epochs (< 20 rather than > 20)")
     return parser
 
 if __name__ == '__main__':
