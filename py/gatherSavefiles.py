@@ -9,12 +9,18 @@ parser= get_options()
 options,args= parser.parse_args()
 #Parse
 if not options.split is None:
-    ras= numpy.arange(options.split)
+    ras= numpy.arange(options.split)+1
 else:
     ras= [0,1,2,3,20,21,22,23,-2]
 #cmd
 savefilebase= args[0]
-savefiles= [args[0]+'_%i' % ra for ra in ras]
+#savefiles= [args[0]+'_%i' % ra for ra in ras]
+spl= args[0].split('.')
+newname= ''
+for jj in range(len(spl)-1):
+    newname+= spl[jj]
+    if not jj == len(spl)-2: newname+= '.'
+savefiles= [newname+'_%i.' % ra + spl[-1] for ra in ras]
 ii= 0
 if os.path.exists(savefiles[ii]):
     savefile= open(savefiles[ii],'rb')
